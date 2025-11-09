@@ -15,9 +15,9 @@ Run with: pytest tests/test_unified_fetch_stress.py -v
 import pytest
 import asyncio
 import time
-from nba_mcp.data.unified_fetch import unified_fetch, batch_fetch, apply_filters
-from nba_mcp.data.cache_integration import get_cache_manager, reset_cache_manager
-from nba_mcp.data.filter_pushdown import get_pushdown_mapper
+from nba_api_mcp.data.unified_fetch import unified_fetch, batch_fetch, apply_filters
+from nba_api_mcp.data.cache_integration import get_cache_manager, reset_cache_manager
+from nba_api_mcp.data.filter_pushdown import get_pushdown_mapper
 import pyarrow as pa
 
 

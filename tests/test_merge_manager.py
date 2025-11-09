@@ -9,7 +9,7 @@ import pandas as pd
 import pyarrow as pa
 from typing import Dict, Any
 
-from nba_mcp.api.data_groupings import (
+from nba_api_mcp.api.data_groupings import (
     GroupingLevel,
     merge_with_advanced_metrics,
     merge_with_shot_chart_data,
@@ -17,7 +17,7 @@ from nba_mcp.api.data_groupings import (
     get_merge_identifier_columns,
     list_all_merge_configs,
 )
-from nba_mcp.data.merge_manager import (
+from nba_api_mcp.data.merge_manager import (
     MergeManager,
     MergeValidationLevel,
     MergeValidationResult,

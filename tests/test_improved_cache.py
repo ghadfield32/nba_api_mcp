@@ -3,7 +3,7 @@ Test improved caching layer with fallback and compression
 """
 import time
 
-from nba_mcp.cache import (
+from nba_api_mcp.cache import (
     CacheTier,
     LRUCache,
     RedisCache,

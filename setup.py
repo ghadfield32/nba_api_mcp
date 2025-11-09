@@ -39,7 +39,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "nba-mcp = nba_mcp.nba_server:main",
+            "nba-mcp = nba_api_mcp.nba_server:main",
         ],
     },
 )

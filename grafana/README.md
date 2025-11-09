@@ -135,19 +135,19 @@ All metrics are prefixed with `nba_mcp_`:
 
 ### Request Rate by Tool
 ```promql
-rate(nba_mcp_requests_total[5m])
+rate(nba_api_mcp_requests_total[5m])
 ```
 
 ### 95th Percentile Latency
 ```promql
-histogram_quantile(0.95, rate(nba_mcp_request_duration_seconds_bucket[5m]))
+histogram_quantile(0.95, rate(nba_api_mcp_request_duration_seconds_bucket[5m]))
 ```
 
 ### Success Rate
 ```promql
-sum(rate(nba_mcp_requests_total{status="success"}[5m]))
+sum(rate(nba_api_mcp_requests_total{status="success"}[5m]))
 /
-sum(rate(nba_mcp_requests_total[5m]))
+sum(rate(nba_api_mcp_requests_total[5m]))
 ```
 
 ### Cache Hit Rate Trend
@@ -157,7 +157,7 @@ nba_mcp_cache_hit_rate
 
 ### Quota Consumption Rate
 ```promql
-rate(nba_mcp_quota_usage{quota_type="daily"}[1h])
+rate(nba_api_mcp_quota_usage{quota_type="daily"}[1h])
 ```
 
 ## Troubleshooting

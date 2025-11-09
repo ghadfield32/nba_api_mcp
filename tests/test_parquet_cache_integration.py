@@ -23,8 +23,8 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from nba_mcp.data.cache_integration import CacheManager, get_cache_manager, reset_cache_manager
-from nba_mcp.data.parquet_cache import ParquetCacheConfig
+from nba_api_mcp.data.cache_integration import CacheManager, get_cache_manager, reset_cache_manager
+from nba_api_mcp.data.parquet_cache import ParquetCacheConfig
 
 
 @pytest.fixture

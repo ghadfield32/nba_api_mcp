@@ -9,7 +9,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from nba_mcp.api.schedule import fetch_nba_schedule_raw, parse_schedule_to_dataframe
+from nba_api_mcp.api.schedule import fetch_nba_schedule_raw, parse_schedule_to_dataframe
 
 
 async def main():

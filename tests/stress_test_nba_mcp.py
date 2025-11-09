@@ -179,7 +179,7 @@ class StressTestScenarios:
 
         Simulates multiple users requesting player stats simultaneously
         """
-        from nba_mcp.api.season_aggregator import get_player_season_stats
+        from nba_api_mcp.api.season_aggregator import get_player_season_stats
         import random
 
         results = StressTestResults()
@@ -226,7 +226,7 @@ class StressTestScenarios:
 
         Tests computation-heavy operations under load
         """
-        from nba_mcp.api.advanced_metrics_calculator import calculate_game_score
+        from nba_api_mcp.api.advanced_metrics_calculator import calculate_game_score
         import random
 
         results = StressTestResults()
@@ -324,7 +324,7 @@ class StressTestScenarios:
 
         Tests memory management with full-season data
         """
-        from nba_mcp.api.data_groupings import GroupingFactory, GroupingLevel
+        from nba_api_mcp.api.data_groupings import GroupingFactory, GroupingLevel
         import random
 
         results = StressTestResults()

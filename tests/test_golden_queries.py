@@ -25,9 +25,9 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from tests.golden import GOLDEN_QUERIES, GoldenQuery, get_query_statistics
-from nba_mcp.nlq.pipeline import answer_nba_question
-from nba_mcp.nlq.tool_registry import initialize_tool_registry
-from nba_mcp.nlq.mock_tools import register_mock_tools
+from nba_api_mcp.nlq.pipeline import answer_nba_question
+from nba_api_mcp.nlq.tool_registry import initialize_tool_registry
+from nba_api_mcp.nlq.mock_tools import register_mock_tools
 
 
 # ============================================================================
@@ -106,7 +106,7 @@ def cleanup_registry():
 
     Phase 6: Added registry cleanup to prevent test pollution (2025-11-01)
     """
-    from nba_mcp.nlq.tool_registry import clear_registry
+    from nba_api_mcp.nlq.tool_registry import clear_registry
     clear_registry()  # Clear before test
     register_mock_tools()  # Register mocks
     yield

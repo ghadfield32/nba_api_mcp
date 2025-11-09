@@ -10,7 +10,7 @@ Purpose: Short-term improvement - expanded test coverage
 
 import pytest
 from datetime import date, timedelta
-from nba_mcp.api.tools.date_parser import (
+from nba_api_mcp.api.tools.date_parser import (
     parse_relative_date,
     normalize_parameter_name,
     parse_and_normalize_date_params,

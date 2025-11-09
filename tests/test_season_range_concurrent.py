@@ -11,13 +11,13 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from nba_mcp.utils.season_utils import (
+from nba_api_mcp.utils.season_utils import (
     parse_season_input,
     expand_season_range,
     format_season_display,
     validate_season_format
 )
-from nba_mcp.api.data_groupings import fetch_grouping_multi_season
+from nba_api_mcp.api.data_groupings import fetch_grouping_multi_season
 
 
 async def test_season_range_parsing():
@@ -77,7 +77,7 @@ async def test_concurrent_vs_sequential():
 
     # Test sequential fetching
     print("\nFetching 3 seasons SEQUENTIALLY...")
-    from nba_mcp.api.data_groupings import fetch_grouping
+    from nba_api_mcp.api.data_groupings import fetch_grouping
     import pandas as pd
 
     start_sequential = time.time()

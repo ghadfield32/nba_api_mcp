@@ -1,6 +1,6 @@
 # NBA Awards Implementation - Complete Code
 
-## File 1: Client Methods (nba_mcp/api/client.py)
+## File 1: Client Methods (nba_api_mcp/api/client.py)
 
 Add these methods to the `NBAApiClient` class:
 
@@ -129,7 +129,7 @@ async def get_player_awards(
 
 ---
 
-## File 2: MCP Tool (nba_mcp/nba_server.py)
+## File 2: MCP Tool (nba_api_mcp/nba_server.py)
 
 Add this tool function (find a good spot with other @mcp_server.tool() functions):
 
@@ -313,7 +313,7 @@ async def get_nba_awards(
 
 ---
 
-## File 3: Tool Registration (nba_mcp/nba_server.py)
+## File 3: Tool Registration (nba_api_mcp/nba_server.py)
 
 Find the tool registration section (around line 4990) and add:
 
@@ -342,7 +342,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from nba_mcp.api.client import NBAApiClient
+from nba_api_mcp.api.client import NBAApiClient
 
 
 async def test_awards():
@@ -421,8 +421,8 @@ if __name__ == "__main__":
 
 ### Files Modified:
 1. ✅ `api_documentation/awards_data.json` - Historical awards data (CREATED)
-2. ✅ `nba_mcp/api/client.py` - Add 3 new methods
-3. ✅ `nba_mcp/nba_server.py` - Add MCP tool + registration
+2. ✅ `nba_api_mcp/api/client.py` - Add 3 new methods
+3. ✅ `nba_api_mcp/nba_server.py` - Add MCP tool + registration
 4. ✅ `tests/test_awards.py` - Test script (CREATED)
 
 ### Lines of Code Added:

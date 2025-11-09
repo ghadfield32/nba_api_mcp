@@ -46,7 +46,7 @@ class TestDataGroupings:
     @pytest.mark.asyncio
     async def test_player_game_grouping(self):
         """Test player/game grouping - day granularity"""
-        from nba_mcp.api.data_groupings import GroupingFactory, GroupingLevel
+        from nba_api_mcp.api.data_groupings import GroupingFactory, GroupingLevel
 
         grouping = GroupingFactory.create(GroupingLevel.PLAYER_GAME)
 
@@ -64,7 +64,7 @@ class TestDataGroupings:
     @pytest.mark.asyncio
     async def test_player_team_game_grouping(self):
         """Test player/team/game grouping - filtered by team"""
-        from nba_mcp.api.data_groupings import GroupingFactory, GroupingLevel
+        from nba_api_mcp.api.data_groupings import GroupingFactory, GroupingLevel
 
         grouping = GroupingFactory.create(GroupingLevel.PLAYER_TEAM_GAME)
 
@@ -85,7 +85,7 @@ class TestDataGroupings:
     @pytest.mark.asyncio
     async def test_team_game_grouping(self):
         """Test team/game grouping - day granularity"""
-        from nba_mcp.api.data_groupings import GroupingFactory, GroupingLevel
+        from nba_api_mcp.api.data_groupings import GroupingFactory, GroupingLevel
 
         grouping = GroupingFactory.create(GroupingLevel.TEAM_GAME)
 
@@ -102,7 +102,7 @@ class TestDataGroupings:
     @pytest.mark.asyncio
     async def test_player_season_aggregation(self):
         """Test player/season grouping - season granularity"""
-        from nba_mcp.api.season_aggregator import get_player_season_stats
+        from nba_api_mcp.api.season_aggregator import get_player_season_stats
 
         # Fetch season stats
         stats = await get_player_season_stats(
@@ -126,7 +126,7 @@ class TestDataGroupings:
     @pytest.mark.asyncio
     async def test_team_season_aggregation(self):
         """Test team/season grouping - season granularity"""
-        from nba_mcp.api.season_aggregator import get_team_season_stats
+        from nba_api_mcp.api.season_aggregator import get_team_season_stats
 
         # Fetch team season stats
         stats = await get_team_season_stats(
@@ -149,7 +149,7 @@ class TestDataGroupings:
     @pytest.mark.asyncio
     async def test_player_team_season_aggregation(self):
         """Test player/team/season grouping - season granularity with team filter"""
-        from nba_mcp.api.season_aggregator import get_player_season_stats
+        from nba_api_mcp.api.season_aggregator import get_player_season_stats
 
         # Get player stats filtered by team
         stats = await get_player_season_stats(
@@ -172,7 +172,7 @@ class TestDataGroupings:
     @pytest.mark.asyncio
     async def test_play_by_play_with_lineups(self):
         """Test play-by-play with lineup tracking - second granularity"""
-        from nba_mcp.api.lineup_tracker import get_play_by_play_with_lineups
+        from nba_api_mcp.api.lineup_tracker import get_play_by_play_with_lineups
 
         # Fetch play-by-play with lineups
         df = await get_play_by_play_with_lineups(TEST_GAME_ID, start_period=1, end_period=1)
@@ -202,7 +202,7 @@ class TestDataGroupings:
     @pytest.mark.asyncio
     async def test_granularity_constraints(self):
         """Test that granularity constraints are enforced"""
-        from nba_mcp.api.data_groupings import get_grouping_info, GroupingLevel
+        from nba_api_mcp.api.data_groupings import get_grouping_info, GroupingLevel
 
         # Check player/game granularity
         player_game_info = get_grouping_info(GroupingLevel.PLAYER_GAME)
@@ -221,7 +221,7 @@ class TestDataGroupings:
     @pytest.mark.asyncio
     async def test_parameter_validation(self):
         """Test parameter validation for each grouping"""
-        from nba_mcp.api.data_groupings import GroupingFactory, GroupingLevel
+        from nba_api_mcp.api.data_groupings import GroupingFactory, GroupingLevel
 
         # Test player/game requires season
         grouping = GroupingFactory.create(GroupingLevel.PLAYER_GAME)
@@ -249,7 +249,7 @@ class TestAdvancedMetrics:
     @pytest.mark.asyncio
     async def test_game_score_calculation(self):
         """Test Game Score per 36 calculation"""
-        from nba_mcp.api.advanced_metrics_calculator import calculate_game_score, calculate_game_score_per_36
+        from nba_api_mcp.api.advanced_metrics_calculator import calculate_game_score, calculate_game_score_per_36
 
         # Sample stats
         stats = {
@@ -279,7 +279,7 @@ class TestAdvancedMetrics:
     @pytest.mark.asyncio
     async def test_efficiency_metrics(self):
         """Test TS% and eFG% calculations"""
-        from nba_mcp.api.advanced_metrics_calculator import (
+        from nba_api_mcp.api.advanced_metrics_calculator import (
             calculate_true_shooting_pct,
             calculate_effective_fg_pct
         )
@@ -299,7 +299,7 @@ class TestAdvancedMetrics:
     @pytest.mark.asyncio
     async def test_win_shares_calculation(self):
         """Test Win Shares calculation"""
-        from nba_mcp.api.advanced_metrics_calculator import WinSharesCalculator
+        from nba_api_mcp.api.advanced_metrics_calculator import WinSharesCalculator
 
         player_stats = {
             "PTS": 2000,
@@ -330,7 +330,7 @@ class TestAdvancedMetrics:
     @pytest.mark.asyncio
     async def test_ewa_calculation(self):
         """Test Estimated Wins Added calculation"""
-        from nba_mcp.api.advanced_metrics_calculator import calculate_ewa
+        from nba_api_mcp.api.advanced_metrics_calculator import calculate_ewa
 
         player_stats = {
             "PTS": 2000,
@@ -363,7 +363,7 @@ class TestShotCharts:
     @pytest.mark.asyncio
     async def test_player_shot_chart(self):
         """Test player shot chart - spatial granularity"""
-        from nba_mcp.api.shot_charts import get_shot_chart
+        from nba_api_mcp.api.shot_charts import get_shot_chart
 
         # Fetch player shot chart
         data = await get_shot_chart(
@@ -387,7 +387,7 @@ class TestShotCharts:
     @pytest.mark.asyncio
     async def test_team_shot_chart(self):
         """Test team shot chart - spatial granularity"""
-        from nba_mcp.api.shot_charts import get_shot_chart
+        from nba_api_mcp.api.shot_charts import get_shot_chart
 
         # Fetch team shot chart
         data = await get_shot_chart(

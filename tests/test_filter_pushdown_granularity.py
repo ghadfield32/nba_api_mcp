@@ -13,7 +13,7 @@ data granularities defined by the user:
 Phase 2F: Granularity Testing
 """
 import pytest
-from nba_mcp.data.filter_pushdown import FilterPushdownMapper
+from nba_api_mcp.data.filter_pushdown import FilterPushdownMapper
 
 
 class TestGranularityFilterMappings:

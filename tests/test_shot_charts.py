@@ -19,8 +19,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from nba_mcp.api.errors import EntityNotFoundError, InvalidParameterError
-from nba_mcp.api.shot_charts import (
+from nba_api_mcp.api.errors import EntityNotFoundError, InvalidParameterError
+from nba_api_mcp.api.shot_charts import (
     aggregate_to_hexbin,
     calculate_zone_summary,
     fetch_shot_chart_data,

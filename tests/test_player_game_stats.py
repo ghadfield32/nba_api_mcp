@@ -9,7 +9,7 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from nba_mcp.api.client import NBAApiClient
+from nba_api_mcp.api.client import NBAApiClient
 
 
 async def test_player_game_stats():

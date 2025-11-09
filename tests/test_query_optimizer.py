@@ -9,7 +9,7 @@ Tests optimization strategies:
 """
 
 import pytest
-from nba_mcp.data.query_optimizer import (
+from nba_api_mcp.data.query_optimizer import (
     QueryOptimizer,
     CostEstimator,
     QueryOperation,

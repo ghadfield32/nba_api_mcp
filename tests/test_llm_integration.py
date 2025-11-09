@@ -24,7 +24,7 @@ import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 from dataclasses import asdict
 
-from nba_mcp.nlq.llm_fallback import (
+from nba_api_mcp.nlq.llm_fallback import (
     LLMConfig,
     OllamaClient,
     get_llm_config,
@@ -37,8 +37,8 @@ from nba_mcp.nlq.llm_fallback import (
     PARSE_REFINEMENT_PROMPT,
     PLAN_GENERATION_PROMPT,
 )
-from nba_mcp.nlq.parser import ParsedQuery
-from nba_mcp.nlq.planner import ToolCall
+from nba_api_mcp.nlq.parser import ParsedQuery
+from nba_api_mcp.nlq.planner import ToolCall
 
 
 # ============================================================================

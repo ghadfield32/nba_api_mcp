@@ -16,7 +16,7 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from nba_mcp.api.advanced_stats import get_current_season_from_nba_api
+from nba_api_mcp.api.advanced_stats import get_current_season_from_nba_api
 
 
 class TestGetLiveScoresDateHandling:
@@ -28,7 +28,7 @@ class TestGetLiveScoresDateHandling:
         """
         Test that get_live_scores fetches date from NBA API when no target_date provided.
         """
-        from nba_mcp.nba_server import get_live_scores
+        from nba_api_mcp.nba_server import get_live_scores
 
         # Mock ScoreBoard to return a specific date
         mock_sb_instance = Mock()
@@ -57,7 +57,7 @@ class TestGetLiveScoresDateHandling:
         """
         Test that get_live_scores uses provided target_date without calling NBA API.
         """
-        from nba_mcp.nba_server import get_live_scores
+        from nba_api_mcp.nba_server import get_live_scores
 
         # Mock NBAApiClient
         mock_client_instance = Mock()
@@ -81,7 +81,7 @@ class TestGetLiveScoresDateHandling:
         Test that get_live_scores raises exception when NBA API fails.
         (No fallback to system clock)
         """
-        from nba_mcp.nba_server import get_live_scores
+        from nba_api_mcp.nba_server import get_live_scores
 
         # Mock ScoreBoard to raise an exception
         mock_scoreboard_class.side_effect = Exception("NBA API unavailable")
@@ -199,7 +199,7 @@ class TestAdvancedStatsSeasonDetection:
         """
         Test that get_team_standings uses NBA API for season when not provided.
         """
-        from nba_mcp.api.advanced_stats import get_team_standings
+        from nba_api_mcp.api.advanced_stats import get_team_standings
 
         # Mock the helper function
         mock_get_season.return_value = "2024-25"
@@ -225,7 +225,7 @@ class TestAdvancedStatsSeasonDetection:
         """
         Test that get_team_advanced_stats uses NBA API for season when not provided.
         """
-        from nba_mcp.api.advanced_stats import get_team_advanced_stats
+        from nba_api_mcp.api.advanced_stats import get_team_advanced_stats
 
         # Mock the helper function
         mock_get_season.return_value = "2024-25"
@@ -257,7 +257,7 @@ class TestAdvancedStatsSeasonDetection:
         """
         Test that get_player_advanced_stats uses NBA API for season when not provided.
         """
-        from nba_mcp.api.advanced_stats import get_player_advanced_stats
+        from nba_api_mcp.api.advanced_stats import get_player_advanced_stats
 
         # Mock the helper function
         mock_get_season.return_value = "2024-25"

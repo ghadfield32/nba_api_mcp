@@ -12,12 +12,12 @@ import os
 # Add parent directory to path (works on all platforms)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from nba_mcp.nlq.parser import parse_query
-from nba_mcp.nlq.planner import plan_query_execution
-from nba_mcp.nlq.executor import execute_plan
-from nba_mcp.nlq.synthesizer import synthesize_response
-from nba_mcp.nlq.pipeline import answer_nba_question
-from nba_mcp.nlq.mock_tools import register_mock_tools
+from nba_api_mcp.nlq.parser import parse_query
+from nba_api_mcp.nlq.planner import plan_query_execution
+from nba_api_mcp.nlq.executor import execute_plan
+from nba_api_mcp.nlq.synthesizer import synthesize_response
+from nba_api_mcp.nlq.pipeline import answer_nba_question
+from nba_api_mcp.nlq.mock_tools import register_mock_tools
 
 
 # ============================================================================

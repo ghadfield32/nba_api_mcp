@@ -295,14 +295,14 @@ This runs 23 core tests covering:
 
 ```bash
 # Format code
-black nba_mcp/
-isort nba_mcp/
+black nba_api_mcp/
+isort nba_api_mcp/
 
 # Type checking
-mypy nba_mcp/
+mypy nba_api_mcp/
 
 # Linting
-flake8 nba_mcp/
+flake8 nba_api_mcp/
 ```
 
 ## Monitoring & Observability
@@ -454,7 +454,7 @@ All tools return a standardized response envelope:
 2. Create a feature branch (`git checkout -b feature/your-feature`)
 3. Make your changes
 4. Run tests (`pytest tests/`)
-5. Format code (`black nba_mcp/ && isort nba_mcp/`)
+5. Format code (`black nba_api_mcp/ && isort nba_api_mcp/`)
 6. Commit your changes (`git commit -m "Add your feature"`)
 7. Push to the branch (`git push origin feature/your-feature`)
 8. Open a Pull Request

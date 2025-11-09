@@ -34,7 +34,7 @@ import argparse
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from nba_mcp.nba_server import (
+from nba_api_mcp.nba_server import (
     resolve_nba_entity,
     get_player_career_information,
     get_player_advanced_stats,

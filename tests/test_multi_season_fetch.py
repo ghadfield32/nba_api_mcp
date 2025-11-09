@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from nba_mcp.api.data_groupings import fetch_grouping
+from nba_api_mcp.api.data_groupings import fetch_grouping
 import pandas as pd
 
 

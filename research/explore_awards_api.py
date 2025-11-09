@@ -15,7 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from nba_api.stats.endpoints import playerawards
-from nba_mcp.api.client import NBAApiClient
+from nba_api_mcp.api.client import NBAApiClient
 import pandas as pd
 
 

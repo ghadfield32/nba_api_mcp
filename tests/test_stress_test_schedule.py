@@ -17,7 +17,7 @@ import json
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from nba_mcp.api.schedule import (
+from nba_api_mcp.api.schedule import (
     get_nba_schedule,
     format_schedule_markdown,
     get_current_season_year,

@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from nba_mcp.api.tools import live_nba_endpoints as live_tools
+from nba_api_mcp.api.tools import live_nba_endpoints as live_tools
 
 
 def _fake_game_summary(game_id: str, home_abbr: str, away_abbr: str) -> dict:

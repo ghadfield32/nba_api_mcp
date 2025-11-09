@@ -43,7 +43,7 @@ dev = [
 ]
 
 [project.scripts]
-nba-mcp = "nba_mcp.nba_server:main"
+nba-mcp = "nba_api_mcp.nba_server:main"
 
 [tool.black]
 line-length = 88

@@ -4,11 +4,11 @@
 import pytest
 import time
 import asyncio
-from nba_mcp.rate_limit.token_bucket import (
+from nba_api_mcp.rate_limit.token_bucket import (
     TokenBucket, RateLimiter, QuotaTracker, rate_limited,
     initialize_rate_limiter, get_rate_limiter
 )
-from nba_mcp.api.errors import RateLimitError
+from nba_api_mcp.api.errors import RateLimitError
 
 
 # ==============================================================================

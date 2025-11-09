@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-import nba_mcp.nba_server as server
+import nba_api_mcp.nba_server as server
 
 
 def safe_print(text):

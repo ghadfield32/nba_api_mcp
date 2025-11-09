@@ -13,12 +13,12 @@ import pandas as pd
 import asyncio
 from typing import Dict, List, Set
 
-from nba_mcp.api.data_groupings import (
+from nba_api_mcp.api.data_groupings import (
     GroupingLevel,
     fetch_grouping,
     fetch_grouping_multi_season,
 )
-from nba_mcp.data.enrichment_strategy import (
+from nba_api_mcp.data.enrichment_strategy import (
     EnrichmentEngine,
     EnrichmentType,
     get_available_enrichments,

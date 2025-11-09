@@ -18,8 +18,8 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from nba_mcp.api.client import NBAApiClient
-from nba_mcp.nlq.pipeline import answer_nba_question
+from nba_api_mcp.api.client import NBAApiClient
+from nba_api_mcp.nlq.pipeline import answer_nba_question
 
 # Configure detailed logging
 logging.basicConfig(

@@ -16,7 +16,7 @@ from datetime import datetime
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from nba_mcp.nba_server import (
+from nba_api_mcp.nba_server import (
     get_player_career_information,
     get_league_leaders_info,
     get_live_scores,

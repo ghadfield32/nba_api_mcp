@@ -35,15 +35,15 @@ ERROR - Tool 'get_player_advanced_stats' not found in registry
 6. Response returned with `confidence=0.70` and incomplete data
 
 ### Root Cause:
-The NLQ tool registry (`nba_mcp/nlq/tool_registry.py`) does not have all the tools registered that the planner is trying to use.
+The NLQ tool registry (`nba_api_mcp/nlq/tool_registry.py`) does not have all the tools registered that the planner is trying to use.
 
 **Expected**: Tool registry should contain all tools that the planner can generate
 **Actual**: Tool registry is missing `get_player_advanced_stats` and possibly others
 
 ### Code Location:
-- **Planner**: `nba_mcp/nlq/planner.py` (generates tool calls)
-- **Executor**: `nba_mcp/nlq/executor.py` (tries to execute tools)
-- **Registry**: `nba_mcp/nlq/tool_registry.py` (maps tool names to functions)
+- **Planner**: `nba_api_mcp/nlq/planner.py` (generates tool calls)
+- **Executor**: `nba_api_mcp/nlq/executor.py` (tries to execute tools)
+- **Registry**: `nba_api_mcp/nlq/tool_registry.py` (maps tool names to functions)
 
 ### Why This Causes the Original Error:
 The NLQ pipeline returns a `SynthesizedResponse` object (dataclass) with `.to_dict()` method.
@@ -96,7 +96,7 @@ The module is actually part of the `nba_mcp` package, not a separate `nba_stats_
 from nba_stats_api.stats_api import get_player_shotchart
 
 # CORRECT:
-from nba_mcp.api.client import NBAApiClient
+from nba_api_mcp.api.client import NBAApiClient
 client = NBAApiClient()
 shot_data = await client.get_player_shot_chart(...)
 ```
@@ -273,7 +273,7 @@ result = await answer_nba_question(query, return_metadata=False)
 ## Recommended Fixes (Priority Order)
 
 ### Priority 1: Fix NLQ Tool Registry
-**File**: `nba_mcp/nlq/tool_registry.py`
+**File**: `nba_api_mcp/nlq/tool_registry.py`
 **Action**:
 1. Read the file to see what tools are registered
 2. Add missing tools that planner generates:
@@ -292,7 +292,7 @@ result = await answer_nba_question(query, return_metadata=False)
 ### Priority 3: Fix Import Paths
 **Files**: Various scripts/tests
 **Action**:
-1. Replace `from nba_stats_api` with `from nba_mcp.api.client`
+1. Replace `from nba_stats_api` with `from nba_api_mcp.api.client`
 2. Update function calls to match NBAApiClient methods
 3. Ensure consistent import pattern across codebase
 
@@ -309,7 +309,7 @@ result = await answer_nba_question(query, return_metadata=False)
 
 1. **Investigate Tool Registry**
    ```python
-   # Read nba_mcp/nlq/tool_registry.py
+   # Read nba_api_mcp/nlq/tool_registry.py
    # Check what tools are registered
    # Add missing tools
    ```
@@ -372,7 +372,7 @@ result = await answer_nba_question(query, return_metadata=False)
 
 ## Files to Modify (Summary)
 
-1. `nba_mcp/nlq/tool_registry.py` - Add missing tools
+1. `nba_api_mcp/nlq/tool_registry.py` - Add missing tools
 2. `debug/debug_mcp_queries.py` - Fix imports, columns, methods
 3. Any scripts using team game logs - Fix method name
 4. Any scripts importing nba_stats_api - Fix import path

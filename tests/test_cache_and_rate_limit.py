@@ -8,14 +8,14 @@ import time
 import sys
 sys.path.insert(0, '/home/user/nba_mcp')
 
-from nba_mcp.cache.redis_cache import (
+from nba_api_mcp.cache.redis_cache import (
     RedisCache, CacheTier, cached, generate_cache_key, initialize_cache, get_cache
 )
-from nba_mcp.rate_limit.token_bucket import (
+from nba_api_mcp.rate_limit.token_bucket import (
     TokenBucket, RateLimiter, QuotaTracker, rate_limited,
     initialize_rate_limiter, get_rate_limiter
 )
-from nba_mcp.api.errors import RateLimitError
+from nba_api_mcp.api.errors import RateLimitError
 
 
 # ============================================================================

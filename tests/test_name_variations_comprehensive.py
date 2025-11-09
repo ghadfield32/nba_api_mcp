@@ -12,8 +12,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from nba_mcp.api.entity_resolver import resolve_team, resolve_player
-from nba_mcp.api.name_variations import get_variations_stats
+from nba_api_mcp.api.entity_resolver import resolve_team, resolve_player
+from nba_api_mcp.api.name_variations import get_variations_stats
 
 
 def remove_diacritics(text: str) -> str:

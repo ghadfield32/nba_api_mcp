@@ -22,8 +22,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pandas as pd
-from nba_mcp.api.data_groupings import fetch_grouping
-from nba_mcp.api.data_filtering import (
+from nba_api_mcp.api.data_groupings import fetch_grouping
+from nba_api_mcp.api.data_filtering import (
     apply_stat_filters,
     split_filters,
     filter_min_minutes,

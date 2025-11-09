@@ -11,7 +11,7 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from nba_mcp.api.schedule import (
+from nba_api_mcp.api.schedule import (
     get_current_season_year,
     fetch_nba_schedule_raw,
     parse_schedule_to_dataframe,

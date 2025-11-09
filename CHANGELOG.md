@@ -46,10 +46,10 @@
 - **Problem**: Fragmented fetching (13+ if/elif branches), no batch support, parameter handling scattered across functions
 - **Solution**: Plugin-based registry, unified parameter processing, generic filtering, batch operations
 - **Key Components Created**:
-  1. Parameter Processor ([parameter_processor.py](nba_mcp/data/parameter_processor.py), 500 lines): Centralized validation/transformation with entity resolution, type coercion, date parsing, aliases
-  2. Endpoint Registry ([endpoint_registry.py](nba_mcp/data/endpoint_registry.py), 350 lines): Decorator-based registration replacing if/elif chain; handler discovery, metadata storage
-  3. Unified Fetch ([unified_fetch.py](nba_mcp/data/unified_fetch.py), 450 lines): Single entry point with filters, batch ops, provenance tracking
-  4. Updated [fetch.py](nba_mcp/data/fetch.py): Registered 8 endpoints with decorators, fetch_endpoint() now uses registry
+  1. Parameter Processor ([parameter_processor.py](nba_api_mcp/data/parameter_processor.py), 500 lines): Centralized validation/transformation with entity resolution, type coercion, date parsing, aliases
+  2. Endpoint Registry ([endpoint_registry.py](nba_api_mcp/data/endpoint_registry.py), 350 lines): Decorator-based registration replacing if/elif chain; handler discovery, metadata storage
+  3. Unified Fetch ([unified_fetch.py](nba_api_mcp/data/unified_fetch.py), 450 lines): Single entry point with filters, batch ops, provenance tracking
+  4. Updated [fetch.py](nba_api_mcp/data/fetch.py): Registered 8 endpoints with decorators, fetch_endpoint() now uses registry
 - **Features Implemented**:
   * Single unified fetch function: `unified_fetch(endpoint, params, filters)` - works with any endpoint
   * Batch fetching with parallelization: `batch_fetch(requests)` - fetch multiple datasets concurrently using asyncio.gather()
@@ -65,10 +65,10 @@
   * Flexibility: Parameter aliases, fuzzy entity matching, multiple date formats
   * Backward Compatible: Existing fetch_endpoint() works unchanged, registry-based internally
 - **Files Modified**:
-  * NEW [parameter_processor.py](nba_mcp/data/parameter_processor.py): 500 lines, parameter validation/transformation, entity resolution, caching
-  * NEW [endpoint_registry.py](nba_mcp/data/endpoint_registry.py): 350 lines, plugin system with decorators, handler discovery
-  * NEW [unified_fetch.py](nba_mcp/data/unified_fetch.py): 450 lines, unified entry point, batch ops, filtering
-  * UPDATED [fetch.py](nba_mcp/data/fetch.py): +70 lines (8 @register_endpoint decorators), fetch_endpoint() uses registry
+  * NEW [parameter_processor.py](nba_api_mcp/data/parameter_processor.py): 500 lines, parameter validation/transformation, entity resolution, caching
+  * NEW [endpoint_registry.py](nba_api_mcp/data/endpoint_registry.py): 350 lines, plugin system with decorators, handler discovery
+  * NEW [unified_fetch.py](nba_api_mcp/data/unified_fetch.py): 450 lines, unified entry point, batch ops, filtering
+  * UPDATED [fetch.py](nba_api_mcp/data/fetch.py): +70 lines (8 @register_endpoint decorators), fetch_endpoint() uses registry
   * NEW [UNIFIED_FETCH_GUIDE.md](UNIFIED_FETCH_GUIDE.md): Comprehensive 600-line user guide with examples
 - **API Examples**:
   ```python
@@ -117,8 +117,8 @@
 - **Problem**: Every fetch requires network call to NBA API, even for frequently accessed data like standings or recent stats
 - **Solution**: Intelligent caching with automatic TTL selection based on data type (LIVE/DAILY/HISTORICAL/STATIC)
 - **Key Components Created**:
-  1. Cache Manager ([cache_integration.py](nba_mcp/data/cache_integration.py), 500 lines): Redis + LRU fallback, automatic TTL selection, cache statistics tracking
-  2. Updated [unified_fetch.py](nba_mcp/data/unified_fetch.py): Integrated CacheManager, added use_cache/force_refresh parameters, provenance tracking for cache hits/misses
+  1. Cache Manager ([cache_integration.py](nba_api_mcp/data/cache_integration.py), 500 lines): Redis + LRU fallback, automatic TTL selection, cache statistics tracking
+  2. Updated [unified_fetch.py](nba_api_mcp/data/unified_fetch.py): Integrated CacheManager, added use_cache/force_refresh parameters, provenance tracking for cache hits/misses
   3. Test Suite ([test_cache_integration.py](test_cache_integration.py)): Comprehensive validation of cache behavior
 - **Features Implemented**:
   * Redis caching with in-memory LRU fallback: Primary: Redis with connection pooling; Fallback: LRU cache (max 1000 entries) when Redis unavailable
@@ -129,7 +129,7 @@
   * Provenance tracking: Operations include "cache:hit" or "cache:miss"; from_cache boolean in UnifiedFetchResult; Execution time includes cache lookup
   * Transparent integration: Enabled by default (use_cache=True); No breaking changes to API; Backward compatible with existing code
 - **Implementation Details**:
-  * Added import: from nba_mcp.data.cache_integration import get_cache_manager
+  * Added import: from nba_api_mcp.data.cache_integration import get_cache_manager
   * Updated unified_fetch signature: Added use_cache=True, force_refresh=False parameters
   * Step 4 replacement: Wrapped handler in fetch_func that converts DataFrames to Arrow tables; Used cache_mgr.get_or_fetch() for cache-aware fetching; Tracked cache hits/misses in provenance
   * Data serialization: PyArrow tables serialized using IPC stream format; Efficient binary format for Redis storage; Automatic DataFrame-to-Arrow conversion before caching
@@ -163,13 +163,13 @@
   )
 
   # Check cache statistics
-  from nba_mcp.data.cache_integration import get_cache_manager
+  from nba_api_mcp.data.cache_integration import get_cache_manager
   stats = get_cache_manager().get_stats()
   print(f"Hit rate: {stats['hit_rate_percent']:.1f}%")
   ```
 - **Files Modified**:
-  * NEW [cache_integration.py](nba_mcp/data/cache_integration.py): 342 lines, CacheManager class, TTL tiers, statistics
-  * UPDATED [unified_fetch.py](nba_mcp/data/unified_fetch.py): +40 lines, cache integration, new parameters
+  * NEW [cache_integration.py](nba_api_mcp/data/cache_integration.py): 342 lines, CacheManager class, TTL tiers, statistics
+  * UPDATED [unified_fetch.py](nba_api_mcp/data/unified_fetch.py): +40 lines, cache integration, new parameters
   * NEW [test_cache_integration.py](test_cache_integration.py): Comprehensive test suite with 6 test cases
   * UPDATED [ENHANCEMENTS_PHASE2_PLAN.md](ENHANCEMENTS_PHASE2_PLAN.md): Marked cache integration as complete
 - **Testing Coverage**:
@@ -196,8 +196,8 @@
 - **Problem**: All filters applied post-fetch with DuckDB, even when NBA API supports native filtering; No comprehensive testing across all features
 - **Solution**: Intelligent filter splitting (API pushdown vs post-fetch) + 34-test stress suite validating all functionality
 - **Key Components Created**:
-  1. Filter Pushdown Module ([filter_pushdown.py](nba_mcp/data/filter_pushdown.py), 370 lines): Endpoint-specific filter-to-parameter mapping, automatic filter splitting, validation
-  2. Updated [unified_fetch.py](nba_mcp/data/unified_fetch.py): Integrated filter pushdown before fetch, tracks pushdown in provenance
+  1. Filter Pushdown Module ([filter_pushdown.py](nba_api_mcp/data/filter_pushdown.py), 370 lines): Endpoint-specific filter-to-parameter mapping, automatic filter splitting, validation
+  2. Updated [unified_fetch.py](nba_api_mcp/data/unified_fetch.py): Integrated filter pushdown before fetch, tracks pushdown in provenance
   3. Comprehensive Test Suite ([tests/test_unified_fetch_stress.py](tests/test_unified_fetch_stress.py), 520 lines): 34 tests across 8 test classes
 - **Features Implemented**:
   * Filter pushdown optimization: Splits filters into API-pushable (outcome, location, date ranges) vs post-fetch (statistical filters); Reduces data transfer by 50-90% for filtered queries; Example: Fetching wins only (WL='W') now fetches 41 games instead of 82
@@ -225,7 +225,7 @@
   ❌ Some column name mismatches in tests (CONFERENCE vs Conference)
   ❌ Windows asyncio crash during concurrent operations (not code issue)
 - **Implementation Details**:
-  * Added import: from nba_mcp.data.filter_pushdown import get_pushdown_mapper
+  * Added import: from nba_api_mcp.data.filter_pushdown import get_pushdown_mapper
   * Step 3.5 in unified_fetch: Pushdown mapper splits filters before fetch; API parameters merged into processed.params; Post-fetch filters applied with DuckDB
   * Provenance updates: filter_pushdown and post_filter operations tracked; Transformations show which filters pushed
   * Error handling: Graceful fallback - unpushable filters go to post-fetch; Invalid filters logged as warnings
@@ -278,8 +278,8 @@
   # Fetches 41 games from API, then filters for PTS >= 110 with DuckDB
   ```
 - **Files Modified**:
-  * NEW [filter_pushdown.py](nba_mcp/data/filter_pushdown.py): 370 lines, FilterPushdownMapper class, endpoint mappings, split_filters()
-  * UPDATED [unified_fetch.py](nba_mcp/data/unified_fetch.py): +20 lines, filter pushdown integration in Step 3.5
+  * NEW [filter_pushdown.py](nba_api_mcp/data/filter_pushdown.py): 370 lines, FilterPushdownMapper class, endpoint mappings, split_filters()
+  * UPDATED [unified_fetch.py](nba_api_mcp/data/unified_fetch.py): +20 lines, filter pushdown integration in Step 3.5
   * NEW [tests/test_unified_fetch_stress.py](tests/test_unified_fetch_stress.py): 520 lines, 34 comprehensive tests
   * UPDATED [ENHANCEMENTS_PHASE2_PLAN.md](ENHANCEMENTS_PHASE2_PLAN.md): Marked filter pushdown and stress tests as complete
 - **Migration Path**: Automatic - existing unified_fetch() calls automatically benefit from filter pushdown; No code changes needed; Filters intelligently split between API and post-fetch
@@ -314,9 +314,9 @@
   * [PHASE2C_COMPREHENSIVE_TESTING_SUMMARY.md](PHASE2C_COMPREHENSIVE_TESTING_SUMMARY.md): Summary of all 34 tests, bugs found, fixes applied
   * [PHASE2C_FINAL_SUMMARY.md](PHASE2C_FINAL_SUMMARY.md): Executive summary of accomplishments and performance impact
 - **Files Modified**:
-  * UPDATED [unified_fetch.py](nba_mcp/data/unified_fetch.py): ~25 lines, moved provenance creation after filter pushdown
-  * UPDATED [leaguegamelog_tools.py](nba_mcp/tools/leaguegamelog_tools.py): ~30 lines, switched to LeagueGameFinder API
-  * UPDATED [fetch.py](nba_mcp/data/fetch.py): ~3 lines, added outcome parameter support
+  * UPDATED [unified_fetch.py](nba_api_mcp/data/unified_fetch.py): ~25 lines, moved provenance creation after filter pushdown
+  * UPDATED [leaguegamelog_tools.py](nba_api_mcp/tools/leaguegamelog_tools.py): ~30 lines, switched to LeagueGameFinder API
+  * UPDATED [fetch.py](nba_api_mcp/data/fetch.py): ~3 lines, added outcome parameter support
   * NEW debug_provenance.py: Debug script for testing provenance tracking
 - **Performance Validation**:
   * Lakers 2023-24 Games: 82 rows → 41 rows (50% reduction) with WL filter
@@ -331,7 +331,7 @@
 - **Problem**: No optimization for complex queries with multiple fetch→filter→join operations; inefficient execution order causes unnecessary data processing
 - **Solution**: Cost-based query optimizer with operation reordering, filter combination, and execution plan generation
 - **Key Components Created**:
-  1. Query Optimizer ([query_optimizer.py](nba_mcp/data/query_optimizer.py), 420 lines): Cost estimator, query optimizer, execution plan generator
+  1. Query Optimizer ([query_optimizer.py](nba_api_mcp/data/query_optimizer.py), 420 lines): Cost estimator, query optimizer, execution plan generator
   2. Test Suite ([test_query_optimizer.py](tests/test_query_optimizer.py), 380 lines): 19 comprehensive tests validating all optimization strategies
 - **Features Implemented**:
   * Cost estimation for all operations: FETCH (1000 units base), FILTER (rows × 0.1), JOIN (rows1 × rows2 × 0.01), AGGREGATE (rows × 0.5), SORT (rows × log(rows) × 0.2)
@@ -371,7 +371,7 @@
   * Optimization Scenarios: 2/2 tests (100%) - complex multi-step query optimization
   * Global Optimizer: 2/2 tests (100%) - end-to-end workflow optimization
 - **Files Created**:
-  * NEW [query_optimizer.py](nba_mcp/data/query_optimizer.py): 420 lines, complete query optimization infrastructure
+  * NEW [query_optimizer.py](nba_api_mcp/data/query_optimizer.py): 420 lines, complete query optimization infrastructure
   * NEW [test_query_optimizer.py](tests/test_query_optimizer.py): 380 lines, 19 comprehensive tests
   * NEW [UNIFIED_FETCH_COMPLETE_FUNCTIONALITY.md](UNIFIED_FETCH_COMPLETE_FUNCTIONALITY.md): Complete functionality guide with use cases and benchmarks
 - **Integration with Unified Fetch**: Ready for integration with unified_fetch() for automatic query optimization; Can be enabled with optimize=True parameter; Preserves backward compatibility with existing code
@@ -396,16 +396,16 @@
   * Game Endpoints (3): box_score, play_by_play, live_scores
   * League/Stats Endpoints (1): league_leaders, shot_chart
 - **Implementation Details**:
-  * Added @register_endpoint decorators to all 6 handlers in [fetch.py](nba_mcp/data/fetch.py): ~310 lines
-  * Added catalog definitions for all 6 endpoints in [catalog.py](nba_mcp/data/catalog.py): ~200 lines
+  * Added @register_endpoint decorators to all 6 handlers in [fetch.py](nba_api_mcp/data/fetch.py): ~310 lines
+  * Added catalog definitions for all 6 endpoints in [catalog.py](nba_api_mcp/data/catalog.py): ~200 lines
   * Each endpoint includes: Required/optional parameters, description, tags, handler function
 - **Catalog Integration**: Complete metadata for all endpoints - parameter schemas, primary keys, sample usage, data categories; Enables automatic parameter validation and documentation generation
 - **Test Coverage**: Created comprehensive test suite with 8 tests:
   * Endpoint Registration: 2/2 tests (100%) - all endpoints registered with decorators
   * Endpoint Metadata Validation: 6/6 tests (100%) - metadata complete for each endpoint
 - **Files Modified**:
-  * UPDATED [fetch.py](nba_mcp/data/fetch.py): +310 lines (6 endpoint handlers with @register_endpoint decorators)
-  * UPDATED [catalog.py](nba_mcp/data/catalog.py): +200 lines (6 catalog definitions)
+  * UPDATED [fetch.py](nba_api_mcp/data/fetch.py): +310 lines (6 endpoint handlers with @register_endpoint decorators)
+  * UPDATED [catalog.py](nba_api_mcp/data/catalog.py): +200 lines (6 catalog definitions)
   * NEW [test_new_endpoints.py](tests/test_new_endpoints.py): 155 lines, 8 comprehensive tests
   * NEW test_endpoint_registration.py: Validation script for endpoint registration
 - **API Examples**:
@@ -448,9 +448,9 @@
   * ✅ League leaders (league_leaders): Season, per_mode filtering
   * ✅ Box score (box_score): No filter pushdown (single game ID)
 - **Implementation Details**:
-  * Extended [filter_pushdown.py](nba_mcp/data/filter_pushdown.py): +40 lines (4 endpoint filter mappings)
-  * Updated [fetch.py](nba_mcp/data/fetch.py): +60 lines (4 handlers updated to accept filter parameters)
-  * Updated [client.py](nba_mcp/api/client.py): +100 lines (4 methods updated to pass filters to NBA API)
+  * Extended [filter_pushdown.py](nba_api_mcp/data/filter_pushdown.py): +40 lines (4 endpoint filter mappings)
+  * Updated [fetch.py](nba_api_mcp/data/fetch.py): +60 lines (4 handlers updated to accept filter parameters)
+  * Updated [client.py](nba_api_mcp/api/client.py): +100 lines (4 methods updated to pass filters to NBA API)
   * Created comprehensive test suite: [test_filter_pushdown_granularity.py](tests/test_filter_pushdown_granularity.py): 250 lines, 21 tests
 - **Filter Mappings Added**:
   ```python
@@ -487,9 +487,9 @@
   * [PHASE2F_FILTER_PUSHDOWN_SUMMARY.md](PHASE2F_FILTER_PUSHDOWN_SUMMARY.md): Comprehensive implementation details with usage examples
   * [validate_all_granularities.py](validate_all_granularities.py): Validation script demonstrating all 11 granularities work correctly
 - **Files Modified**:
-  * UPDATED [filter_pushdown.py](nba_mcp/data/filter_pushdown.py): +40 lines (4 endpoint mappings)
-  * UPDATED [fetch.py](nba_mcp/data/fetch.py): +60 lines (4 handlers accept date_from/date_to/outcome/location)
-  * UPDATED [client.py](nba_mcp/api/client.py): +100 lines (4 methods pass filters to NBA API)
+  * UPDATED [filter_pushdown.py](nba_api_mcp/data/filter_pushdown.py): +40 lines (4 endpoint mappings)
+  * UPDATED [fetch.py](nba_api_mcp/data/fetch.py): +60 lines (4 handlers accept date_from/date_to/outcome/location)
+  * UPDATED [client.py](nba_api_mcp/api/client.py): +100 lines (4 methods pass filters to NBA API)
   * NEW [test_filter_pushdown_granularity.py](tests/test_filter_pushdown_granularity.py): 250 lines, 21 tests
   * NEW [PHASE2F_FILTER_PUSHDOWN_SUMMARY.md](PHASE2F_FILTER_PUSHDOWN_SUMMARY.md): Complete implementation documentation
   * NEW validate_all_granularities.py: Validation script
@@ -556,7 +556,7 @@
 - **Changes**: Added NBA_MCP_PORT=8005 to .env with comprehensive documentation; moved load_dotenv() to module level (before BASE_PORT); simplified port logic to read directly from .env
 - **Implementation**: Module-level .env loading ensures BASE_PORT reads correctly: `load_dotenv()` at line 20 → `BASE_PORT = int(os.getenv("NBA_MCP_PORT", "8005"))` at line 120
 - **Files Modified**: .env (+17L PORT CONFIGURATION section), nba_server.py (+8L: module-level load_dotenv with path resolution, simplified BASE_PORT read, removed mode conditionals)
-- **Path Resolution**: `Path(__file__).parent.parent` correctly resolves to repo root (nba_mcp/) where .env is located
+- **Path Resolution**: `Path(__file__).parent.parent` correctly resolves to repo root (nba_api_mcp/) where .env is located
 - **Backward Compatibility**: 100% - CLI --port flag still overrides, NBA_MCP_PORT env var still works, fallback defaults preserved, --mode flag kept for compatibility
 - **Testing**: ✅ Module-level loading verified (BASE_PORT=8005), env var accessible (NBA_MCP_PORT=8005), server imports successfully, integration tests passed
 - **Impact**: Single source of truth for port config; module-level loading ensures BASE_PORT set correctly; no mode conditionals; Docker-friendly (-e override); no breaking changes
@@ -613,7 +613,7 @@
   * **Impact**: All 11 intent types now fully integrated; ValidationResult provides actionable feedback; queries like "Where does LeBron rank?" now work end-to-end
   * **Documentation**: PHASE_2_INTEGRATION_SUMMARY.md (detailed integration report with examples)
 - **Phase 3: LLM Fallback Integration** (2025-11-01, ~2 hours):
-  * Created llm_fallback.py module: Ollama client wrapper, parse refinement, plan generation, metrics tracking (+434L nba_mcp/nlq/llm_fallback.py)
+  * Created llm_fallback.py module: Ollama client wrapper, parse refinement, plan generation, metrics tracking (+434L nba_api_mcp/nlq/llm_fallback.py)
   * Added environment configuration: .env.example with NBA_MCP_LLM_MODEL (llama3.2:3b default), NBA_MCP_LLM_URL, NBA_MCP_ENABLE_LLM_FALLBACK, timeout settings (+52L .env.example)
   * Integrated parse refinement: Low-confidence queries (<0.5) trigger LLM refinement with +0.3 confidence boost (+28L parser.py)
   * Integrated plan generation: Unknown intents trigger LLM-based tool selection with parameter generation (+30L planner.py, async conversion)
@@ -828,8 +828,8 @@
 - **Status**: ✅ COMPLETE (2025-11-02, ~30 minutes)
 - **Purpose**: Fix 2 remaining minor issues identified in comprehensive audit
 - **Scope**: Dependency cycle detection + enhanced error structure for LLM recovery
-- **Issue #21 - Dependency Cycle Detection**: Added `_detect_dependency_cycles()` function using depth-first search (DFS) to detect circular dependencies in execution plans; integrated into `validate_execution_plan()` with clear error logging showing cycle path (+81L nba_mcp/nlq/planner.py lines 1601-1681, 1712-1717)
-- **Issue #22 - Enhanced Error Structure**: Extended `ToolResult` dataclass with structured error fields (`error_code`, `error_details`, `retry_after`) for LLM recovery; preserves `NBAMCPError` details in structured format; maintains backward compatibility with existing `error` string field; enables future LLM-based error recovery logic (+29L nba_mcp/nlq/executor.py lines 28-61, 136-172)
+- **Issue #21 - Dependency Cycle Detection**: Added `_detect_dependency_cycles()` function using depth-first search (DFS) to detect circular dependencies in execution plans; integrated into `validate_execution_plan()` with clear error logging showing cycle path (+81L nba_api_mcp/nlq/planner.py lines 1601-1681, 1712-1717)
+- **Issue #22 - Enhanced Error Structure**: Extended `ToolResult` dataclass with structured error fields (`error_code`, `error_details`, `retry_after`) for LLM recovery; preserves `NBAMCPError` details in structured format; maintains backward compatibility with existing `error` string field; enables future LLM-based error recovery logic (+29L nba_api_mcp/nlq/executor.py lines 28-61, 136-172)
 - **Total Changes**: +110 lines across 2 files (planner.py +81L, executor.py +29L)
 - **Impact**: Prevents invalid execution plans with circular dependencies (O(n) DFS detection); enables future LLM-powered error recovery with structured error context
 - **Backward Compatibility**: 100% (all changes additive, existing error handling preserved)
@@ -873,7 +873,7 @@
 - **Purpose**: Fetch official NBA schedule from NBA CDN with auto-season detection and filtering
 - **Scope**: New MCP tool `get_nba_schedule` with comprehensive filtering, Pydantic schemas, automated testing
 - **Implementation**:
-  1. **Schedule Helper Module** (nba_mcp/api/schedule.py - 550 lines)
+  1. **Schedule Helper Module** (nba_api_mcp/api/schedule.py - 550 lines)
      - `fetch_nba_schedule_raw()`: Fetches from https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json
      - `parse_schedule_to_dataframe()`: Parses JSON to structured DataFrame with filtering
      - `get_nba_schedule()`: Main async entry point with auto-season detection
@@ -1061,7 +1061,7 @@
 - **Root Cause**: `get_date_range_game_log_or_team_game_log()` returned formatted text (markdown with emoji) instead of JSON, inconsistent with 18 other MCP tools
 - **Solution**: Rewrote function to return ResponseEnvelope JSON format matching other MCP tools
 - **Changes**:
-  - **File**: `nba_mcp/nba_server.py` (lines 860-1077)
+  - **File**: `nba_api_mcp/nba_server.py` (lines 860-1077)
   - **Function**: `get_date_range_game_log_or_team_game_log()` (~218 lines)
   - Changed from `format_game_log()` text formatting to `df.to_dict('records')` JSON serialization
   - Updated docstring to specify JSON return format with example ResponseEnvelope structure
@@ -1092,8 +1092,8 @@
   - Added `save_text()` for markdown content (play-by-play narratives)
   - Updated `save_nba_data()` with `format="auto"` parameter and smart detection logic
 - **Files Changed**:
-  - `nba_mcp/data/dataset_manager.py`: Added 4 helper functions (~210 lines)
-  - `nba_mcp/nba_server.py`: Rewrote `save_nba_data()` function (~160 lines)
+  - `nba_api_mcp/data/dataset_manager.py`: Added 4 helper functions (~210 lines)
+  - `nba_api_mcp/nba_server.py`: Rewrote `save_nba_data()` function (~160 lines)
   - `examples/save_fetched_datasets.py`: Updated to use `format="auto"` (~15 lines)
 - **Results**: 11/11 datasets saved in optimal formats
   - Parquet (8): player_game (11KB), player_team_game (11KB), player_season (5.6KB), player_team_season (5.7KB), team_season (5.5KB), shot_chart_player (11KB), shot_chart_team (32KB), lineup (18KB) = 112KB total
@@ -1178,7 +1178,7 @@
 
 ### Data Enrichment System - Complete ✅
 - **Status**: ✅ Fully Implemented and Tested (2025-10-30)
-- **Modules**: `nba_mcp/data/enrichment_strategy.py` (600+ lines)
+- **Modules**: `nba_api_mcp/data/enrichment_strategy.py` (600+ lines)
 - **Purpose**: Automatically enrich datasets with all available data to create comprehensive "data lake" tables
 - **Features**:
   - **Enrichment Engine** (`enrichment_strategy.py`): Intelligent data enrichment
@@ -1250,7 +1250,7 @@
 
 ### Data Grouping Merge System - Complete ✅
 - **Status**: ✅ Fully Implemented and Tested (2025-10-30)
-- **Modules**: `nba_mcp/data/merge_manager.py` (850+ lines), `nba_mcp/data/dataset_inspector.py` (650+ lines)
+- **Modules**: `nba_api_mcp/data/merge_manager.py` (850+ lines), `nba_api_mcp/data/dataset_inspector.py` (650+ lines)
 - **Purpose**: Safe, validated merges for combining data sources (game logs, advanced metrics, shot charts) at correct granularity
 - **Features**:
   - **Merge Manager** (`merge_manager.py`): Granularity-aware merging with validation
@@ -1326,15 +1326,15 @@
 - **Root Cause**: `nba_api` library assumes NBA API always returns `WinProbability` dataset, but recent games don't include it
 - **Solution**: Monkey patch to make `WinProbability` optional in `ScoreboardV2` endpoint
 - **Files**:
-  - NEW: [`nba_mcp/api/nba_api_patches.py`](nba_mcp/api/nba_api_patches.py) - Centralized nba_api bug fixes
-  - MODIFIED: [`playbyplayv3_or_realtime.py`](nba_mcp/api/tools/playbyplayv3_or_realtime.py) - Apply patches at module load
+  - NEW: [`nba_api_mcp/api/nba_api_patches.py`](nba_api_mcp/api/nba_api_patches.py) - Centralized nba_api bug fixes
+  - MODIFIED: [`playbyplayv3_or_realtime.py`](nba_api_mcp/api/tools/playbyplayv3_or_realtime.py) - Apply patches at module load
 - **Testing**: All 5 previously failing games now return play-by-play data successfully
 - **Impact**: Fixes play-by-play MCP tool and all downstream features
 - **Documentation**: See [WINPROBABILITY_FIX_SUMMARY.md](WINPROBABILITY_FIX_SUMMARY.md)
 
 ### Dataset Management & Joins Feature - Complete ✅
 - **Status**: ✅ Fully Implemented and Tested (2025-10-29)
-- **Modules**: `nba_mcp/data/` (4 modules, 1,400+ lines)
+- **Modules**: `nba_api_mcp/data/` (4 modules, 1,400+ lines)
 - **Features**:
   - **Data Catalog** (`catalog.py`): 9 endpoint definitions with schemas, PKs, join relationships, 6 join patterns
   - **Dataset Manager** (`dataset_manager.py`): In-memory storage with TTL (1h), automatic cleanup, multi-format export
@@ -1369,7 +1369,7 @@
 
 ### Endpoint Enhancement & Pagination - Complete ✅
 - **Status**: ✅ Fully Implemented and Tested (2025-10-29)
-- **Modules**: `nba_mcp/data/` (2 new modules, 1,000+ lines)
+- **Modules**: `nba_api_mcp/data/` (2 new modules, 1,000+ lines)
 - **Features**:
   - **Introspection Module** (`introspection.py`): Auto-discover endpoint capabilities
     - Column names and data types
@@ -1418,7 +1418,7 @@
 
 ### Dataset Size Limits - Complete ✅
 - **Status**: ✅ Fully Implemented and Tested (2025-10-29)
-- **Modules**: `nba_mcp/data/limits.py` (1 new module, 250+ lines)
+- **Modules**: `nba_api_mcp/data/limits.py` (1 new module, 250+ lines)
 - **Features**:
   - **Limit Configuration** (`limits.py`): Configurable fetch size limits
     - Default: 1024 MB (1 GB) - reasonable for most use cases
@@ -1521,7 +1521,7 @@
 
 ### Shot Charts Feature
 - **Status**: ✅ Complete
-- **Module**: `nba_mcp/api/shot_charts.py` (525 lines)
+- **Module**: `nba_api_mcp/api/shot_charts.py` (525 lines)
 - **Features**: Raw shot data, hexagonal binning aggregation, zone summaries (paint, mid-range, 3PT)
 - **Performance**: <2s cold cache, <100ms warm cache, 4 granularity modes
 - **Integration**: Entity resolution, response envelope, caching (HISTORICAL tier), rate limiting (30/min)
@@ -1529,7 +1529,7 @@
 
 ### Game Context Composition
 - **Status**: ✅ Complete
-- **Module**: `nba_mcp/api/game_context.py` (700+ lines)
+- **Module**: `nba_api_mcp/api/game_context.py` (700+ lines)
 - **Features**: Multi-source data (standings, advanced stats, form, H2H), auto-generated markdown narratives
 - **Performance**: Parallel API execution with asyncio (4x speedup), graceful degradation
 - **Narrative**: 5 sections (matchup header, series, form, edge, storylines)
@@ -1537,7 +1537,7 @@
 
 ### Era-Adjusted Comparisons
 - **Status**: ✅ Complete
-- **Module**: `nba_mcp/api/era_adjusted.py` (350 lines)
+- **Module**: `nba_api_mcp/api/era_adjusted.py` (350 lines)
 - **Features**: Cross-era player comparisons with pace and scoring environment adjustments
 - **Historical Data**: League averages from 1990s-2020s
 - **Use Case**: Fair comparisons (e.g., Michael Jordan vs LeBron James)

@@ -15,19 +15,19 @@ import pandas as pd
 import pyarrow as pa
 from typing import Dict, List
 
-from nba_mcp.api.data_groupings import (
+from nba_api_mcp.api.data_groupings import (
     GroupingLevel,
     merge_datasets_by_grouping,
     merge_with_advanced_metrics,
     merge_with_shot_chart_data,
     get_merge_identifier_columns,
 )
-from nba_mcp.data.merge_manager import (
+from nba_api_mcp.data.merge_manager import (
     MergeManager,
     MergeValidationLevel,
     get_merge_config,
 )
-from nba_mcp.data.enrichment_strategy import (
+from nba_api_mcp.data.enrichment_strategy import (
     EnrichmentEngine,
     EnrichmentType,
     get_available_enrichments,

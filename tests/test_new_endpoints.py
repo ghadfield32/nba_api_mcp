@@ -1,8 +1,8 @@
 """Tests for newly registered endpoints in unified_fetch system."""
 import pytest
 import pandas as pd
-from nba_mcp.data.unified_fetch import unified_fetch
-from nba_mcp.data.endpoint_registry import get_registry
+from nba_api_mcp.data.unified_fetch import unified_fetch
+from nba_api_mcp.data.endpoint_registry import get_registry
 
 
 class TestNewEndpointRegistration:
@@ -11,7 +11,7 @@ class TestNewEndpointRegistration:
     def test_all_endpoints_registered(self):
         """Verify all expected endpoints are registered."""
         # Import to trigger decorators
-        import nba_mcp.data.fetch
+        import nba_api_mcp.data.fetch
 
         registry = get_registry()
         registered = set(registry.list_endpoints())
@@ -31,7 +31,7 @@ class TestNewEndpointRegistration:
 
     def test_endpoint_metadata(self):
         """Verify endpoint metadata is correct."""
-        import nba_mcp.data.fetch
+        import nba_api_mcp.data.fetch
 
         registry = get_registry()
 

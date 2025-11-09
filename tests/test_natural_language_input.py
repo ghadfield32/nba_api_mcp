@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from nba_mcp.utils.entity_utils import (
+from nba_api_mcp.utils.entity_utils import (
     resolve_player_input,
     resolve_team_input,
     resolve_flexible_input

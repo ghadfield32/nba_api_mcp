@@ -16,9 +16,9 @@ Run with: pytest tests/test_filter_pushdown_comprehensive.py -v
 import pytest
 import asyncio
 import time
-from nba_mcp.data.unified_fetch import unified_fetch, batch_fetch
-from nba_mcp.data.cache_integration import get_cache_manager, reset_cache_manager
-from nba_mcp.data.filter_pushdown import get_pushdown_mapper, reset_pushdown_mapper
+from nba_api_mcp.data.unified_fetch import unified_fetch, batch_fetch
+from nba_api_mcp.data.cache_integration import get_cache_manager, reset_cache_manager
+from nba_api_mcp.data.filter_pushdown import get_pushdown_mapper, reset_pushdown_mapper
 import pyarrow as pa
 
 
