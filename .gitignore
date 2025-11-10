@@ -7,3 +7,20 @@ __pycache__/
 # Environment variables (Phase 3: LLM Fallback)
 .env
 .env.local
+
+# Test cache (persistent NBA API responses)
+.cache/
+mcp_data/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
