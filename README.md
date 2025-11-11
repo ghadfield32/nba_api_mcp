@@ -47,12 +47,44 @@ A production-ready MCP (Model Context Protocol) server that provides comprehensi
 
 ## Quick Start
 
+### ⚡ Try in 30 Seconds
+
+```bash
+# Install via pipx (recommended) or pip
+pipx install nba-mcp
+# OR: pip install nba-mcp
+
+# Start the server
+nba-mcp serve --mode claude
+
+# In another terminal, try fetching data
+nba-mcp fetch league_leaders --params stat_category=PTS season=2024-25 --filter "PTS >= 25"
+
+# Browse available endpoints
+nba-mcp catalog
+
+# Show configuration
+nba-mcp config
+```
+
+### 🐳 Docker Quick Start
+
+```bash
+# Clone and start with docker-compose
+git clone https://github.com/ghadfield32/nba_mcp.git
+cd nba_mcp
+docker-compose up -d
+
+# The server is now running with Redis caching at http://localhost:8000
+```
+
 ### Prerequisites
 
 - Python 3.10 or higher
 - Git
 - (Optional) Redis for caching
 - (Optional) Ollama for local LLM usage
+- (Optional) Docker for containerized deployment
 
 ### Installation
 
@@ -84,18 +116,40 @@ uv sync --extra dev
 pip install -e ".[dev]"
 ```
 
-### Running the Server
-
-The server can run in two modes:
-
-**Claude Desktop Mode** (Port 8000)
+4. **Configure environment (optional)**
 ```bash
-python -m nba_mcp.nba_server --mode claude
+# Copy example env file and customize
+cp .env.example .env
+# Edit .env with your preferred settings
 ```
 
-**Local LLM Mode** (Port 8001 - for Ollama, etc.)
+### Running the Server
+
+**New CLI (Recommended)**
 ```bash
+# Start server with CLI
+nba-mcp serve --mode claude
+
+# Or with custom port
+nba-mcp serve --mode local --port 8005
+```
+
+**Traditional Method**
+```bash
+# Claude Desktop Mode (Port 8000)
+python -m nba_mcp.nba_server --mode claude
+
+# Local LLM Mode (Port 8001)
 python -m nba_mcp.nba_server --mode local
+```
+
+**Docker Deployment**
+```bash
+# Basic deployment with Redis
+docker-compose up -d
+
+# With monitoring (Prometheus + Grafana)
+docker-compose --profile monitoring up -d
 ```
 
 The server will start and display available tools and configuration.

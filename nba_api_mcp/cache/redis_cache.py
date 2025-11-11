@@ -17,6 +17,7 @@ Features:
 - Automatic key generation
 """
 
+import asyncio
 import gzip
 import hashlib
 import json
@@ -49,6 +50,16 @@ class CacheTier(Enum):
 
     def __str__(self):
         return self.name.lower()
+
+
+# SWR (Stale-While-Revalidate) Configuration
+# Maps cache tiers to SWR window (how long after TTL to serve stale)
+SWR_WINDOWS = {
+    CacheTier.LIVE: 0,  # No SWR for live data (always fresh)
+    CacheTier.DAILY: 120,  # 2 minutes - serve stale for up to 2 min while refreshing
+    CacheTier.HISTORICAL: 3600,  # 1 hour - historical data can be stale longer
+    CacheTier.STATIC: 86400,  # 24 hours - static data rarely changes
+}
 
 
 # ============================================================================
@@ -447,6 +458,164 @@ class RedisCache:
             "fallback_cache_size": self.fallback.size(),
             "redis_available": self.redis_available,
         }
+
+    # ========================================================================
+    # SWR (Stale-While-Revalidate) Methods
+    # ========================================================================
+
+    def set_with_swr(
+        self,
+        key: str,
+        value: Any,
+        ttl: int,
+        tier: CacheTier,
+        swr_window: Optional[int] = None,
+    ) -> bool:
+        """
+        Set value in cache with SWR support.
+
+        Stores value with metadata including fetch timestamp for SWR logic.
+
+        Args:
+            key: Cache key
+            value: Value to cache
+            ttl: Fresh TTL in seconds
+            tier: Cache tier (for SWR window lookup)
+            swr_window: Override SWR window (defaults to tier's window)
+
+        Returns:
+            True if successful
+        """
+        # Get SWR window for tier
+        if swr_window is None:
+            swr_window = SWR_WINDOWS.get(tier, 0)
+
+        # Wrap value with metadata
+        cache_entry = {
+            "payload": value,
+            "fetched_at": time.time(),
+            "ttl": ttl,
+            "swr_window": swr_window,
+        }
+
+        # Total TTL = fresh TTL + SWR window
+        total_ttl = ttl + swr_window
+
+        # Use standard set with extended TTL
+        return self.set(key, cache_entry, total_ttl, tier)
+
+    def get_with_swr(
+        self,
+        key: str,
+        tier: CacheTier,
+        refresh_callback: Optional[Callable[[], Any]] = None,
+    ) -> tuple[Optional[Any], bool, bool]:
+        """
+        Get value from cache with SWR support.
+
+        Returns tuple of (value, is_fresh, needs_refresh).
+
+        SWR Logic:
+        - If age < ttl: Return fresh data (no refresh)
+        - If ttl <= age < (ttl + swr): Return stale data, trigger refresh
+        - If age >= (ttl + swr): Return None (force refresh)
+
+        Args:
+            key: Cache key
+            tier: Cache tier (for SWR window)
+            refresh_callback: Optional async function to refresh in background
+
+        Returns:
+            Tuple of (value, is_fresh, needs_refresh)
+            - value: Cached value or None
+            - is_fresh: True if within fresh TTL
+            - needs_refresh: True if background refresh recommended
+        """
+        # Get cache entry
+        entry = self.get(key)
+
+        if entry is None:
+            return (None, False, True)
+
+        # Check if entry has SWR metadata
+        if not isinstance(entry, dict) or "fetched_at" not in entry:
+            # Legacy entry without SWR metadata - treat as fresh
+            return (entry, True, False)
+
+        # Extract metadata
+        payload = entry["payload"]
+        fetched_at = entry["fetched_at"]
+        ttl = entry["ttl"]
+        swr_window = entry.get("swr_window", SWR_WINDOWS.get(tier, 0))
+
+        # Calculate age
+        age = time.time() - fetched_at
+
+        # Determine freshness
+        is_fresh = age < ttl
+        is_stale_but_acceptable = ttl <= age < (ttl + swr_window)
+        needs_refresh = not is_fresh
+
+        if is_fresh:
+            # Fresh data - no refresh needed
+            logger.debug(f"SWR: Fresh data (age={age:.1f}s < ttl={ttl}s)")
+            return (payload, True, False)
+
+        elif is_stale_but_acceptable:
+            # Stale but acceptable - serve and refresh in background
+            logger.info(
+                f"SWR: Serving stale data (age={age:.1f}s, ttl={ttl}s, window={swr_window}s)"
+            )
+
+            # Trigger background refresh if callback provided
+            if refresh_callback:
+                try:
+                    # Schedule async refresh (fire and forget)
+                    import asyncio
+
+                    loop = asyncio.get_event_loop()
+                    loop.create_task(self._async_refresh(key, tier, refresh_callback))
+                except Exception as e:
+                    logger.warning(f"SWR: Failed to schedule refresh: {e}")
+
+            return (payload, False, True)
+
+        else:
+            # Too stale - force refresh
+            logger.info(f"SWR: Data too stale (age={age:.1f}s >= {ttl + swr_window}s)")
+            return (None, False, True)
+
+    async def _async_refresh(
+        self,
+        key: str,
+        tier: CacheTier,
+        refresh_callback: Callable[[], Any],
+    ) -> None:
+        """
+        Refresh cache entry in background (async).
+
+        Args:
+            key: Cache key
+            tier: Cache tier
+            refresh_callback: Async function that fetches fresh data
+        """
+        try:
+            logger.debug(f"SWR: Background refresh started for {key}")
+
+            # Call refresh callback
+            if asyncio.iscoroutinefunction(refresh_callback):
+                fresh_data = await refresh_callback()
+            else:
+                fresh_data = refresh_callback()
+
+            # Update cache with fresh data
+            ttl = tier.value
+            self.set_with_swr(key, fresh_data, ttl, tier)
+
+            logger.info(f"SWR: Background refresh completed for {key}")
+
+        except Exception as e:
+            logger.error(f"SWR: Background refresh failed for {key}: {e}", exc_info=True)
 
     def ping(self) -> bool:
         """Check if Redis is accessible."""

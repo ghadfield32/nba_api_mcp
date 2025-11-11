@@ -1,0 +1,167 @@
+# Docker Compose configuration for NBA MCP Server
+# Provides full stack with Redis caching, monitoring, and observability
+#
+# Quick start:
+#   docker-compose up -d
+#
+# With monitoring:
+#   docker-compose --profile monitoring up -d
+#
+# Development mode (with code reload):
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # Redis Cache - Persistent caching layer
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: nba-mcp-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - nba-mcp-network
+
+  # ============================================================================
+  # NBA MCP Server - Main application
+  # ============================================================================
+  nba-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nba-mcp-server
+    restart: unless-stopped
+    ports:
+      - "${NBA_MCP_PORT:-8000}:8000"
+    environment:
+      # Server configuration
+      NBA_MCP_PORT: 8000
+      NBA_MCP_LOG_LEVEL: ${NBA_MCP_LOG_LEVEL:-INFO}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+
+      # Redis configuration
+      ENABLE_REDIS_CACHE: "true"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+
+      # Rate limiting
+      NBA_MCP_DAILY_QUOTA: ${NBA_MCP_DAILY_QUOTA:-10000}
+      NBA_MCP_SIMPLE_RATE_LIMIT: ${NBA_MCP_SIMPLE_RATE_LIMIT:-60}
+      NBA_MCP_COMPLEX_RATE_LIMIT: ${NBA_MCP_COMPLEX_RATE_LIMIT:-30}
+
+      # Observability
+      ENABLE_METRICS: ${ENABLE_METRICS:-true}
+      ENABLE_TRACING: ${ENABLE_TRACING:-false}
+      OTLP_ENDPOINT: ${OTLP_ENDPOINT:-http://otel-collector:4317}
+
+      # LLM configuration (optional)
+      NBA_MCP_ENABLE_LLM_FALLBACK: ${NBA_MCP_ENABLE_LLM_FALLBACK:-false}
+      NBA_MCP_LLM_URL: ${NBA_MCP_LLM_URL:-http://host.docker.internal:11434}
+
+      # Concurrency
+      NBA_MCP_MAX_CONCURRENT_LIVE: ${NBA_MCP_MAX_CONCURRENT_LIVE:-4}
+      NBA_MCP_MAX_CONCURRENT_STANDARD: ${NBA_MCP_MAX_CONCURRENT_STANDARD:-8}
+      NBA_MCP_MAX_CONCURRENT_HEAVY: ${NBA_MCP_MAX_CONCURRENT_HEAVY:-2}
+
+    volumes:
+      # Data persistence
+      - nba-data:/app/mcp_data
+      # Cache persistence
+      - cache-data:/app/.cache
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - nba-mcp-network
+
+  # ============================================================================
+  # Prometheus - Metrics collection (monitoring profile)
+  # ============================================================================
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: nba-mcp-prometheus
+    restart: unless-stopped
+    profiles:
+      - monitoring
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+    networks:
+      - nba-mcp-network
+
+  # ============================================================================
+  # Grafana - Metrics visualization (monitoring profile)
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: nba-mcp-grafana
+    restart: unless-stopped
+    profiles:
+      - monitoring
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_INSTALL_PLUGINS: redis-datasource
+    volumes:
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - nba-mcp-network
+
+# ============================================================================
+# Volumes - Persistent data storage
+# ============================================================================
+volumes:
+  redis-data:
+    driver: local
+  nba-data:
+    driver: local
+  cache-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  nba-mcp-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

@@ -102,12 +102,12 @@ def enable_lru_cache():
     try:
         # Try Redis first (for local development)
         redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/15")
-        initialize_cache(redis_url=redis_url, lru_size=2000)
+        initialize_cache(url=redis_url, fallback_cache_size=2000)
         cache = get_cache()
         logger.info(f"✓ Redis cache enabled: {redis_url}")
     except Exception as e:
         # Fall back to LRU-only (for CI)
-        initialize_cache(redis_url=None, lru_size=2000)
+        initialize_cache(url=None, fallback_cache_size=2000)
         cache = get_cache()
         logger.info(f"✓ LRU cache enabled (Redis unavailable: {e})")
 

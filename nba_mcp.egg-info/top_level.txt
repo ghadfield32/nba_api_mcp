@@ -1,2 +1,2 @@
-nba_mcp
+nba_api_mcp
 tests

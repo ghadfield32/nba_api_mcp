@@ -1,2 +1,3 @@
 [console_scripts]
-nba-mcp = nba_mcp.nba_server:main
+nba-mcp = nba_api_mcp.cli:app
+nba-mcp-server = nba_api_mcp.nba_server:main

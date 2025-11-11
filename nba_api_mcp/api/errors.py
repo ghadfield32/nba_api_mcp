@@ -29,12 +29,15 @@ class ErrorCode:
 
     # Client errors (4xx equivalent)
     ENTITY_NOT_FOUND = "ENTITY_NOT_FOUND"
+    NOT_FOUND = "NOT_FOUND"
     INVALID_PARAMETER = "INVALID_PARAMETER"
+    BAD_REQUEST = "BAD_REQUEST"
     INVALID_DATE_RANGE = "INVALID_DATE_RANGE"
     INVALID_SEASON = "INVALID_SEASON"
 
     # Server/API errors (5xx equivalent)
     NBA_API_ERROR = "NBA_API_ERROR"
+    UPSTREAM_FLAKY = "UPSTREAM_FLAKY"
     RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED"
     UPSTREAM_TIMEOUT = "UPSTREAM_TIMEOUT"
     UPSTREAM_SCHEMA_CHANGED = "UPSTREAM_SCHEMA_CHANGED"
@@ -406,6 +409,117 @@ class PartialDataError(NBAMCPError):
                 "components_failed": components_failed or [],
             },
         )
+
+
+class UpstreamFlakyError(NBAMCPError):
+    """Raised when upstream NBA API is experiencing transient failures."""
+
+    def __init__(
+        self,
+        endpoint: str,
+        attempts: int = 1,
+        last_error: Optional[str] = None,
+    ):
+        message = (
+            f"Upstream NBA API is experiencing transient failures for {endpoint}.\n\n"
+            f"Attempts made: {attempts}\n"
+        )
+
+        if last_error:
+            message += f"Last error: {last_error}\n\n"
+
+        message += (
+            "What this means:\n"
+            "  - NBA API is experiencing temporary issues\n"
+            "  - The request may succeed if retried\n"
+            "  - This is usually not your fault\n\n"
+            "What to do:\n"
+            "  1. Wait a few seconds and try again\n"
+            "  2. Check NBA API status (if available)\n"
+            "  3. Use cached data if acceptable\n"
+            "  4. Report if issue persists for >5 minutes\n"
+        )
+
+        super().__init__(
+            message=message,
+            code=ErrorCode.UPSTREAM_FLAKY,
+            details={
+                "endpoint": endpoint,
+                "attempts": attempts,
+                "last_error": last_error,
+                "retry_recommended": True,
+            },
+        )
+
+
+class NotFoundError(NBAMCPError):
+    """Raised when requested resource is not found."""
+
+    def __init__(
+        self,
+        resource_type: str,
+        resource_id: Optional[str] = None,
+        endpoint: Optional[str] = None,
+    ):
+        if resource_id:
+            message = f"{resource_type} with ID '{resource_id}' not found"
+        else:
+            message = f"{resource_type} not found"
+
+        if endpoint:
+            message += f" (endpoint: {endpoint})"
+
+        super().__init__(
+            message=message,
+            code=ErrorCode.NOT_FOUND,
+            details={
+                "resource_type": resource_type,
+                "resource_id": resource_id,
+                "endpoint": endpoint,
+            },
+        )
+
+
+class BadRequestError(NBAMCPError):
+    """Raised when request parameters are malformed or invalid."""
+
+    def __init__(
+        self,
+        message: str,
+        invalid_params: Optional[Dict[str, Any]] = None,
+        endpoint: Optional[str] = None,
+    ):
+        enhanced_message = f"Bad Request: {message}\n\n"
+
+        if invalid_params:
+            enhanced_message += "Invalid parameters:\n"
+            for param, issue in invalid_params.items():
+                enhanced_message += f"  - {param}: {issue}\n"
+            enhanced_message += "\n"
+
+        enhanced_message += (
+            "What to check:\n"
+            "  1. Parameter names are spelled correctly\n"
+            "  2. Parameter values are in correct format\n"
+            "  3. Required parameters are provided\n"
+            "  4. Parameter combinations are valid\n"
+        )
+
+        if endpoint:
+            enhanced_message += f"\n\nEndpoint: {endpoint}"
+
+        super().__init__(
+            message=enhanced_message,
+            code=ErrorCode.BAD_REQUEST,
+            details={
+                "invalid_params": invalid_params or {},
+                "endpoint": endpoint,
+            },
+        )
+
+
+# Alias for backward compatibility
+RateLimitedError = RateLimitError
 
 
 # ============================================================================

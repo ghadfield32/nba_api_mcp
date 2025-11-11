@@ -14,6 +14,7 @@ dependencies = [
   "nba_api>=1.9.0",
   "pandas>=2.2.3",
   "pydantic>=2.11.3",
+  "pydantic-settings>=2.0.0",
   "python-dotenv>=1.1.0",
   "python-dateutil>=2.8.0",
   "langchain-mcp-adapters>=0.0.9",
@@ -32,18 +33,36 @@ dependencies = [
   "pytest>=7.0.0",
   "pytest-asyncio>=0.21.0",
   "duckdb==1.4.1",
+  "typer>=0.9.0",
+  "pyarrow>=14.0.0",
 ]
 
 [project.optional-dependencies]
+redis = [
+  "redis>=5.0.0",
+]
+observability = [
+  "prometheus-client>=0.19.0",
+  "opentelemetry-api>=1.22.0",
+  "opentelemetry-sdk>=1.26.0",
+  "opentelemetry-exporter-otlp>=1.26.0",
+]
 dev = [
   "mypy>=1.0.0",
   "black>=23.0.0",
   "isort>=5.0.0",
   "invoke>=2.2.0",
+  "pytest>=7.0.0",
+  "pytest-asyncio>=0.21.0",
+  "pytest-xdist>=3.0.0",
+  "ruff>=0.6.9",
+  "types-redis>=4.6.0",
+  "pre-commit>=3.5.0",
 ]
 
 [project.scripts]
-nba-mcp = "nba_api_mcp.nba_server:main"
+nba-mcp = "nba_api_mcp.cli:app"
+nba-mcp-server = "nba_api_mcp.nba_server:main"
 
 [tool.black]
 line-length = 88
@@ -58,6 +77,15 @@ multi_line_output = 3
 python_version = "3.10"
 strict = true
 ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501"]  # Line too long (handled by formatter)
+
+[tool.ruff.isort]
+known-first-party = ["nba_api_mcp"]
 
 [tool.pytest.ini_options]
 # Skip test_priority1_tools.py - it's a standalone script, not a pytest suite
