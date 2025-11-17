@@ -16,13 +16,6 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-# Phase 2 Enhancement: Import capability models from Phase 1
-from nba_api_mcp.data.models.query import (
-    ScopeCapability,
-    RangeCapability,
-    FilterCapability,
-)
-
 
 class EndpointCategory(str, Enum):
     """Categories for organizing endpoints."""
@@ -69,15 +62,6 @@ class EndpointMetadata(BaseModel):
     chunk_strategy: Optional[str] = None  # "date", "season", "game", "none"
     min_date: Optional[str] = None  # Format: "YYYY-MM-DD"
     max_date: Optional[str] = None  # Format: "YYYY-MM-DD"
-
-    # Phase 2 Enhancement: Query capability metadata
-    scope_capability: Optional[ScopeCapability] = None
-    range_capability: Optional[RangeCapability] = None
-    filterable_columns: Dict[str, FilterCapability] = Field(default_factory=dict)
-    rate_cost: int = 1  # Relative cost (1=simple, 3=moderate, 5=expensive)
-
-    # Phase 4H: Filter presets for quick query building
-    filter_presets: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class JoinRelationship(BaseModel):
@@ -175,78 +159,6 @@ class DataCatalog:
                 ],
                 sample_params={"player_name": "LeBron James"},
                 notes="Returns all seasons if season not specified",
-                # Phase 2: Capability metadata
-                scope_capability=ScopeCapability(
-                    supports_all_players=True,
-                    supports_multi_players=True,
-                    required_scope="player",
-                ),
-                range_capability=RangeCapability(
-                    supports_season_range=True,
-                    supports_date_range=False,
-                ),
-                filterable_columns={
-                    "GP": FilterCapability(
-                        column="GP",
-                        type="integer",
-                        pushable=False,
-                        operators=["==", "!=", ">", ">=", "<", "<=", "IN", "BETWEEN"],
-                        examples=[82, 60, 40],
-                    ),
-                    "PTS": FilterCapability(
-                        column="PTS",
-                        type="float",
-                        pushable=False,
-                        operators=["==", "!=", ">", ">=", "<", "<=", "BETWEEN"],
-                        examples=[25.0, 20.0, 15.0],
-                    ),
-                    "AST": FilterCapability(
-                        column="AST",
-                        type="float",
-                        pushable=False,
-                        operators=["==", "!=", ">", ">=", "<", "<=", "BETWEEN"],
-                        examples=[7.0, 5.0, 3.0],
-                    ),
-                    "REB": FilterCapability(
-                        column="REB",
-                        type="float",
-                        pushable=False,
-                        operators=["==", "!=", ">", ">=", "<", "<=", "BETWEEN"],
-                        examples=[10.0, 7.0, 5.0],
-                    ),
-                    "FG_PCT": FilterCapability(
-                        column="FG_PCT",
-                        type="float",
-                        pushable=False,
-                        operators=[">", ">=", "<", "<=", "BETWEEN"],
-                        examples=[0.500, 0.450, 0.400],
-                        description="Field Goal Percentage",
-                    ),
-                },
-                rate_cost=3,  # Higher cost due to ALL_ACTIVE support
-                # Phase 4H: Filter presets
-                filter_presets=[
-                    {
-                        "name": "High Scorers (25+ PPG)",
-                        "description": "Players averaging 25+ points in 50+ games",
-                        "filters": {"PTS": [">=", 25], "GP": [">=", 50]},
-                    },
-                    {
-                        "name": "Efficient Shooters",
-                        "description": "50%+ FG and 40%+ 3PT shooting",
-                        "filters": {"FG_PCT": [">=", 0.50], "FG3_PCT": [">=", 0.40]},
-                    },
-                    {
-                        "name": "All-Around Players",
-                        "description": "20+ pts, 5+ ast, 5+ reb",
-                        "filters": {"PTS": [">=", 20], "AST": [">=", 5], "REB": [">=", 5]},
-                    },
-                    {
-                        "name": "Iron Men (70+ Games)",
-                        "description": "Played 70+ games with 30+ minutes",
-                        "filters": {"GP": [">=", 70], "MIN": [">=", 30]},
-                    },
-                ],
             )
         )
 
@@ -292,58 +204,6 @@ class DataCatalog:
                     "TOV_PCT",
                 ],
                 sample_params={"player_name": "Stephen Curry", "season": "2023-24"},
-                # Phase 2: Capability metadata
-                scope_capability=ScopeCapability(
-                    supports_all_players=True,
-                    supports_multi_players=True,
-                    required_scope="player",
-                ),
-                range_capability=RangeCapability(
-                    supports_season_range=True,
-                    supports_date_range=False,
-                ),
-                filterable_columns={
-                    "GP": FilterCapability(
-                        column="GP",
-                        type="integer",
-                        pushable=False,
-                        operators=[">=", "<=", "BETWEEN"],
-                        examples=[60, 50, 40],
-                    ),
-                    "TS_PCT": FilterCapability(
-                        column="TS_PCT",
-                        type="float",
-                        pushable=False,
-                        operators=[">", ">=", "<", "<="],
-                        examples=[0.600, 0.550, 0.500],
-                        description="True Shooting Percentage",
-                    ),
-                    "USG_PCT": FilterCapability(
-                        column="USAGE_PCT",
-                        type="float",
-                        pushable=False,
-                        operators=[">", ">=", "<", "<="],
-                        examples=[30.0, 25.0, 20.0],
-                        description="Usage Percentage",
-                    ),
-                    "OFF_RATING": FilterCapability(
-                        column="OFF_RATING",
-                        type="float",
-                        pushable=False,
-                        operators=[">", ">=", "<", "<="],
-                        examples=[120.0, 115.0, 110.0],
-                        description="Offensive Rating",
-                    ),
-                    "DEF_RATING": FilterCapability(
-                        column="DEF_RATING",
-                        type="float",
-                        pushable=False,
-                        operators=[">", ">=", "<", "<="],
-                        examples=[100.0, 105.0, 110.0],
-                        description="Defensive Rating (lower is better)",
-                    ),
-                },
-                rate_cost=3,  # Higher cost due to ALL_ACTIVE support
             )
         )
 
@@ -390,43 +250,6 @@ class DataCatalog:
                     "STREAK",
                 ],
                 sample_params={"season": "2023-24", "conference": "East"},
-                # Phase 2: Capability metadata
-                scope_capability=ScopeCapability(
-                    supports_all_teams=False,  # Already returns all teams by default
-                    supports_multi_teams=False,
-                    required_scope=None,
-                ),
-                range_capability=RangeCapability(
-                    supports_season_range=True,
-                    supports_date_range=False,
-                ),
-                filterable_columns={
-                    "CONFERENCE": FilterCapability(
-                        column="CONFERENCE",
-                        type="string",
-                        pushable=True,  # Can be pushed to API via conference parameter
-                        operators=["==", "!="],
-                        enum_values=["East", "West"],
-                        description="Conference filter",
-                    ),
-                    "W": FilterCapability(
-                        column="W",
-                        type="integer",
-                        pushable=False,
-                        operators=[">", ">=", "<", "<=", "BETWEEN"],
-                        examples=[50, 40, 30],
-                        description="Wins",
-                    ),
-                    "W_PCT": FilterCapability(
-                        column="W_PCT",
-                        type="float",
-                        pushable=False,
-                        operators=[">", ">=", "<", "<=", "BETWEEN"],
-                        examples=[0.600, 0.500, 0.400],
-                        description="Win Percentage",
-                    ),
-                },
-                rate_cost=1,  # Low cost - single API call
             )
         )
 
@@ -548,69 +371,6 @@ class DataCatalog:
                     "season": "2023-24",
                     "date_from": "2024-01-01",
                 },
-                # Phase 2: Capability metadata
-                scope_capability=ScopeCapability(
-                    supports_all_teams=True,  # Can query all teams
-                    supports_multi_teams=True,
-                    required_scope="team",
-                ),
-                range_capability=RangeCapability(
-                    supports_season_range=True,
-                    supports_date_range=True,  # Supports date_from/date_to
-                ),
-                filterable_columns={
-                    "GAME_DATE": FilterCapability(
-                        column="GAME_DATE",
-                        type="date",
-                        pushable=True,  # Can be pushed to API via date_from/date_to
-                        operators=["==", ">", ">=", "<", "<=", "BETWEEN"],
-                        examples=["2024-01-01", "2024-02-15"],
-                        description="Game date",
-                    ),
-                    "WL": FilterCapability(
-                        column="WL",
-                        type="string",
-                        pushable=True,  # NBA API might support this
-                        operators=["==", "!="],
-                        enum_values=["W", "L"],
-                        description="Win/Loss result",
-                    ),
-                    "PTS": FilterCapability(
-                        column="PTS",
-                        type="integer",
-                        pushable=False,
-                        operators=[">", ">=", "<", "<=", "BETWEEN"],
-                        examples=[120, 110, 100],
-                        description="Points scored",
-                    ),
-                    "PLUS_MINUS": FilterCapability(
-                        column="PLUS_MINUS",
-                        type="integer",
-                        pushable=False,
-                        operators=[">", ">=", "<", "<=", "BETWEEN"],
-                        examples=[10, 0, -10],
-                        description="Plus/Minus differential",
-                    ),
-                },
-                rate_cost=2,  # Moderate cost
-                # Phase 4H: Filter presets
-                filter_presets=[
-                    {
-                        "name": "Winning Teams",
-                        "description": "Wins scoring 110+ points",
-                        "filters": {"WL": ["==", "W"], "PTS": [">=", 110]},
-                    },
-                    {
-                        "name": "Close Games",
-                        "description": "Games decided by 5 points or less",
-                        "filters": {"PLUS_MINUS": ["BETWEEN", -5, 5]},
-                    },
-                    {
-                        "name": "Blowouts (20+ Margin)",
-                        "description": "Wins by 20+ points",
-                        "filters": {"PLUS_MINUS": [">", 20], "WL": ["==", "W"]},
-                    },
-                ],
             )
         )
 
@@ -769,43 +529,6 @@ class DataCatalog:
                     "per_mode": "PerGame",
                     "limit": 10,
                 },
-                # Phase 2: Capability metadata
-                scope_capability=ScopeCapability(
-                    supports_all_players=False,  # Already top N players
-                    supports_multi_players=False,
-                    required_scope=None,
-                ),
-                range_capability=RangeCapability(
-                    supports_season_range=True,
-                    supports_date_range=False,
-                ),
-                filterable_columns={
-                    "PTS": FilterCapability(
-                        column="PTS",
-                        type="float",
-                        pushable=False,
-                        operators=[">", ">=", "<", "<=", "BETWEEN"],
-                        examples=[30.0, 25.0, 20.0],
-                        description="Points per game",
-                    ),
-                    "AST": FilterCapability(
-                        column="AST",
-                        type="float",
-                        pushable=False,
-                        operators=[">", ">=", "<", "<=", "BETWEEN"],
-                        examples=[10.0, 8.0, 6.0],
-                        description="Assists per game",
-                    ),
-                    "REB": FilterCapability(
-                        column="REB",
-                        type="float",
-                        pushable=False,
-                        operators=[">", ">=", "<", "<=", "BETWEEN"],
-                        examples=[12.0, 10.0, 8.0],
-                        description="Rebounds per game",
-                    ),
-                },
-                rate_cost=1,  # Low cost - single API call
             )
         )
 
@@ -1085,74 +808,6 @@ class DataCatalog:
                     "season": "2023-24",
                     "last_n_games": 10,
                 },
-                # Phase 2: Capability metadata
-                scope_capability=ScopeCapability(
-                    supports_all_players=True,
-                    supports_multi_players=True,
-                    required_scope="player",
-                ),
-                range_capability=RangeCapability(
-                    supports_season_range=True,
-                    supports_date_range=True,  # Supports date filtering
-                ),
-                filterable_columns={
-                    "GAME_DATE": FilterCapability(
-                        column="GAME_DATE",
-                        type="date",
-                        pushable=True,  # Can be pushed via date parameters
-                        operators=["==", ">", ">=", "<", "<=", "BETWEEN"],
-                        examples=["2024-01-01", "2024-02-15"],
-                        description="Game date",
-                    ),
-                    "WL": FilterCapability(
-                        column="WL",
-                        type="string",
-                        pushable=True,  # May be pushable via NBA API
-                        operators=["==", "!="],
-                        enum_values=["W", "L"],
-                        description="Win/Loss result",
-                    ),
-                    "PTS": FilterCapability(
-                        column="PTS",
-                        type="integer",
-                        pushable=False,
-                        operators=[">", ">=", "<", "<=", "BETWEEN"],
-                        examples=[30, 25, 20],
-                        description="Points scored",
-                    ),
-                    "FG3M": FilterCapability(
-                        column="FG3M",
-                        type="integer",
-                        pushable=False,
-                        operators=[">", ">=", "<", "<=", "BETWEEN"],
-                        examples=[5, 4, 3],
-                        description="Three-pointers made",
-                    ),
-                },
-                rate_cost=3,  # Higher cost due to ALL_ACTIVE support
-                # Phase 4H: Filter presets
-                filter_presets=[
-                    {
-                        "name": "Recent Games (Last 30 Days)",
-                        "description": "Games from the last 30 days",
-                        "filters": {"GAME_DATE": [">=", "2024-10-12"]},  # Dynamic date in UI
-                    },
-                    {
-                        "name": "Wins Only",
-                        "description": "Games won by the player's team",
-                        "filters": {"WL": ["==", "W"]},
-                    },
-                    {
-                        "name": "High Scoring Games (30+ PTS)",
-                        "description": "Games with 30+ points scored",
-                        "filters": {"PTS": [">=", 30]},
-                    },
-                    {
-                        "name": "Elite 3PT Games (5+ made)",
-                        "description": "Games with 5+ three-pointers made",
-                        "filters": {"FG3M": [">=", 5]},
-                    },
-                ],
             )
         )
 
@@ -1646,84 +1301,6 @@ class DataCatalog:
                 "total_examples": len(self._join_examples),
             },
         }
-
-    # Phase 2: Catalog Helper Methods for Query Capabilities
-    def get_endpoints_supporting_all_players(self) -> List[EndpointMetadata]:
-        """Get endpoints that support ALL_ACTIVE/ALL players queries."""
-        return [
-            ep
-            for ep in self._endpoints.values()
-            if ep.scope_capability and ep.scope_capability.supports_all_players
-        ]
-
-    def get_endpoints_supporting_season_ranges(self) -> List[EndpointMetadata]:
-        """Get endpoints that support season range expansion."""
-        return [
-            ep
-            for ep in self._endpoints.values()
-            if ep.range_capability and ep.range_capability.supports_season_range
-        ]
-
-    def get_endpoints_supporting_date_ranges(self) -> List[EndpointMetadata]:
-        """Get endpoints that support date range filtering."""
-        return [
-            ep
-            for ep in self._endpoints.values()
-            if ep.range_capability and ep.range_capability.supports_date_range
-        ]
-
-    def get_filterable_columns(self, endpoint: str) -> Dict[str, FilterCapability]:
-        """Get filterable columns for an endpoint."""
-        ep = self.get_endpoint(endpoint)
-        return ep.filterable_columns if ep else {}
-
-    def get_pushable_filters(self, endpoint: str) -> List[str]:
-        """Get list of columns that support API-level filter pushdown."""
-        columns = self.get_filterable_columns(endpoint)
-        return [col for col, cap in columns.items() if cap.pushable]
-
-    def estimate_query_cost(
-        self, endpoint: str, scope: Optional[Dict] = None
-    ) -> int:
-        """
-        Estimate relative cost of a query.
-
-        Base cost from endpoint.rate_cost multiplied by scope expansion factor:
-        - ALL_ACTIVE: 450x
-        - ALL: 4000x
-        - Multi-entity: Nx
-
-        Args:
-            endpoint: Endpoint name
-            scope: Scope dictionary (e.g., {"player": "ALL_ACTIVE"})
-
-        Returns:
-            Estimated relative cost (1 = simple query, 1350 = ALL_ACTIVE moderate endpoint)
-        """
-        ep = self.get_endpoint(endpoint)
-        if not ep:
-            return 1
-
-        base_cost = ep.rate_cost
-
-        # Check scope expansion
-        if scope:
-            player_scope = scope.get("player")
-            team_scope = scope.get("team")
-
-            if player_scope == "ALL_ACTIVE":
-                return base_cost * 450
-            elif player_scope == "ALL":
-                return base_cost * 4000
-            elif isinstance(player_scope, list):
-                return base_cost * len(player_scope)
-
-            if team_scope == "ALL":
-                return base_cost * 30
-            elif isinstance(team_scope, list):
-                return base_cost * len(team_scope)
-
-        return base_cost
 
 
 # Global catalog instance

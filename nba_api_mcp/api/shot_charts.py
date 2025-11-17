@@ -572,18 +572,9 @@ async def get_shot_chart(
     if granularity in ["raw", "both"]:
         # Convert shots to list of dicts
         if not shots_df.empty:
-            # Select relevant columns
-            shot_cols = [
-                "LOC_X",
-                "LOC_Y",
-                "SHOT_MADE_FLAG",
-                "SHOT_DISTANCE",
-                "SHOT_TYPE",
-                "GAME_DATE",
-            ]
-            # Only include columns that exist
-            available_cols = [col for col in shot_cols if col in shots_df.columns]
-            raw_shots = shots_df[available_cols].to_dict("records")
+            # Include ALL columns for feature engineering (Session 138 update)
+            # Previously filtered to subset, but xFG% features need ACTION_TYPE, PERIOD, etc.
+            raw_shots = shots_df.to_dict("records")
         else:
             raw_shots = []
 
