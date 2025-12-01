@@ -6809,6 +6809,70 @@ def main():
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
                     self.wfile.write(b'{"status": "healthy"}')
+                elif self.path == "/tools":
+                    try:
+                        # Import tool_registry to get registered tools
+                        from nba_api_mcp.nlq.tool_registry import get_registry_info, get_tool
+
+                        # Build tools list from tool registry
+                        tools_list = []
+                        tool_names = []
+
+                        # Get tools from registry
+                        registry_info = get_registry_info()
+                        tool_names = registry_info.get("tools", [])
+
+                        logger.info(f"[HTTP /tools DEBUG] Tool registry has {len(tool_names)} tools")
+
+                        # Build tool metadata for each tool
+                        for tool_name in tool_names:
+                            tool_func = get_tool(tool_name)
+
+                            # Extract description from function docstring
+                            description = ""
+                            if tool_func and hasattr(tool_func, '__doc__') and tool_func.__doc__:
+                                description = tool_func.__doc__.strip().split('\n')[0]
+
+                            # Build tool metadata
+                            tool_info = {
+                                "name": tool_name,
+                                "description": description,
+                                "category": "nba_data",
+                                "version": "1.0.0",
+                                "cacheable": True,
+                                "input_schema": {
+                                    "type": "object",
+                                    "properties": {},
+                                    "required": []
+                                },
+                                "output_schema": {
+                                    "type": "object",
+                                    "properties": {},
+                                    "required": []
+                                }
+                            }
+                            tools_list.append(tool_info)
+
+                        # Build response in MCP Router format
+                        response = {
+                            "tools": tools_list,
+                            "total_tools": len(tools_list),
+                            "tool_names": tool_names
+                        }
+
+                        # Send JSON response
+                        response_json = json.dumps(response).encode('utf-8')
+                        self.send_response(200)
+                        self.send_header("Content-Type", "application/json")
+                        self.send_header("Content-Length", str(len(response_json)))
+                        self.end_headers()
+                        self.wfile.write(response_json)
+
+                        logger.info(f"[HTTP /tools] Returned {len(tools_list)} NBA MCP tools")
+
+                    except Exception as e:
+                        logger.error(f"[HTTP /tools] Error building tools list: {e}")
+                        self.send_error(500, f"Tools endpoint error: {e}")
                 else:
                     self.send_error(404)
 
@@ -6823,7 +6887,7 @@ def main():
         metrics_thread = threading.Thread(target=run_metrics_server, daemon=True)
         metrics_thread.start()
         logger.info(
-            f"✓ Metrics HTTP server started on port {metrics_port} (/metrics, /health)"
+            f"✓ Metrics HTTP server started on port {metrics_port} (/metrics, /health, /tools)"
         )
 
     except Exception as e:

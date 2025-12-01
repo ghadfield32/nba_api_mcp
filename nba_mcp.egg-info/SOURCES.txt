@@ -29,6 +29,7 @@ nba_api_mcp/api/schema_validator.py
 nba_api_mcp/api/season_aggregator.py
 nba_api_mcp/api/season_context.py
 nba_api_mcp/api/shot_charts.py
+nba_api_mcp/api/shot_tracking_data.py
 nba_api_mcp/api/tool_schemas.py
 nba_api_mcp/api/tool_schemas_extended.py
 nba_api_mcp/cache/__init__.py
@@ -41,6 +42,8 @@ nba_api_mcp/data/dataset_inspector.py
 nba_api_mcp/data/dataset_manager.py
 nba_api_mcp/data/endpoint_registry.py
 nba_api_mcp/data/enrichment_strategy.py
+nba_api_mcp/data/entity_lists.py
+nba_api_mcp/data/expand_scope.py
 nba_api_mcp/data/fetch.py
 nba_api_mcp/data/filter_pushdown.py
 nba_api_mcp/data/introspection.py
@@ -48,10 +51,14 @@ nba_api_mcp/data/joins.py
 nba_api_mcp/data/limits.py
 nba_api_mcp/data/merge_manager.py
 nba_api_mcp/data/pagination.py
+nba_api_mcp/data/param_aliases.py
 nba_api_mcp/data/parameter_processor.py
 nba_api_mcp/data/parquet_cache.py
+nba_api_mcp/data/query_adapter.py
 nba_api_mcp/data/query_optimizer.py
 nba_api_mcp/data/unified_fetch.py
+nba_api_mcp/data/models/__init__.py
+nba_api_mcp/data/models/query.py
 nba_api_mcp/nlq/__init__.py
 nba_api_mcp/nlq/executor.py
 nba_api_mcp/nlq/llm_fallback.py
