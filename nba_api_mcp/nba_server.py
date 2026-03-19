@@ -6647,10 +6647,11 @@ def main():
     logger.info("Initializing dataset manager...")
     import asyncio
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(initialize_manager())
-    logger.info("✓ Dataset manager initialized")
+    _init_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(_init_loop)
+    _init_loop.run_until_complete(initialize_manager())
+    _init_loop.close()
+    logger.info("Dataset manager initialized")
 
     # Initialize NLQ tool registry with real MCP tools
     logger.info("Initializing NLQ tool registry...")
