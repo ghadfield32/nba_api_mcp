@@ -68,9 +68,11 @@ EXPOSE 8000
 # Switch to non-root user
 USER nbauser
 
-# Health check
+# Health check — Railway overrides this with its own healthcheck config,
+# but this is useful for local Docker builds.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${NBA_MCP_PORT}/health || exit 1
+    CMD curl -f http://localhost:${PORT:-${NBA_MCP_PORT}}/health || exit 1
 
-# Default command - run server
-CMD ["nba-mcp", "serve", "--mode", "local"]
+# Default command — use shell form so $PORT (Railway's dynamic port) is expanded.
+# Railway sets $PORT at runtime. Falls back to NBA_MCP_PORT (8000) for local builds.
+CMD nba-mcp serve --mode local --transport sse --host 0.0.0.0 --port ${PORT:-${NBA_MCP_PORT}}

@@ -6904,15 +6904,56 @@ def main():
 
     # if using network transport, check availability
     if transport != "stdio" and port is not None and not port_available(port, host):
-        logger.warning("Port %s:%s not available → falling back to stdio", host, port)
+        logger.warning("Port %s:%s not available -> falling back to stdio", host, port)
         transport = "stdio"
     try:
         if transport == "stdio":
             logger.info("Starting FastMCP server on STDIO")
             mcp.run()
         else:
-            logger.info("Starting FastMCP server on %s://%s:%s", transport, host, port)
-            mcp.run(transport=transport)
+            # Run SSE with /health and /tools on the SAME port.
+            # FastMCP's sse_app() only exposes /sse and /messages.
+            # Railway healthcheck needs /health on $PORT, so we add
+            # custom routes to the Starlette app and run uvicorn ourselves.
+            import asyncio
+            import uvicorn
+            from starlette.requests import Request
+            from starlette.responses import JSONResponse
+            from starlette.routing import Route
+
+            starlette_app = mcp_server.sse_app()
+
+            async def health_endpoint(request: Request) -> JSONResponse:
+                return JSONResponse({"status": "healthy"})
+
+            async def tools_endpoint(request: Request) -> JSONResponse:
+                from nba_api_mcp.nlq.tool_registry import get_registry_info, get_tool
+                registry_info = get_registry_info()
+                tool_names = registry_info.get("tools", [])
+                tools_list = []
+                for name in tool_names:
+                    tool_entry = get_tool(name)
+                    if tool_entry:
+                        tools_list.append({
+                            "name": name,
+                            "description": getattr(tool_entry.get("func"), "__doc__", "") or "",
+                        })
+                return JSONResponse({"tools": tools_list, "count": len(tools_list)})
+
+            # Prepend /health and /tools to the existing SSE routes
+            starlette_app.routes.insert(0, Route("/health", health_endpoint))
+            starlette_app.routes.insert(1, Route("/tools", tools_endpoint))
+
+            logger.info("Starting FastMCP server on %s://%s:%s (with /health, /tools)", transport, host, port)
+
+            config = uvicorn.Config(
+                starlette_app,
+                host=host,
+                port=port,
+                log_level="info",
+            )
+            server = uvicorn.Server(config)
+            asyncio.run(server.serve())
     except Exception:
         logger.exception("Failed to start MCP server (transport=%s)", transport)
         sys.exit(1)
