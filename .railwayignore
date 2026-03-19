@@ -1,4 +1,5 @@
 .venv/
+.venv
 __pycache__/
 *.pyc
 .cache/
@@ -18,3 +19,12 @@ build/
 debug/
 grafana/
 research/
+.git/
+.git
+.github/
+tests/
+implementation/
+scripts/
+schemas/
+*.md
+!README.md
