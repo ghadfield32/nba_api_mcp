@@ -19,6 +19,10 @@ def print_debug_info():
 
 
 def main():
+    # Block CTRL_C_EVENT propagation from parent PowerShell console (Windows)
+    if sys.platform == "win32":
+        import ctypes
+        ctypes.windll.kernel32.SetConsoleCtrlHandler(None, True)
     print_debug_info()
     try:
         from nba_api_mcp.nba_server import main as server_main

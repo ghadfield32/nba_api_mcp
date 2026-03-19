@@ -956,26 +956,97 @@ class DataCatalog:
             )
         )
 
+        # Session 254E: League-wide player season stats (bulk season stats endpoint)
+        self._add_endpoint(
+            EndpointMetadata(
+                name="league_dash_player_stats",
+                display_name="League Dashboard Player Stats",
+                category=EndpointCategory.LEAGUE_DATA,
+                description="Season statistics for ALL players in a season (league-wide dashboard). Returns full stat columns (GP, PTS, REB, AST, FG_PCT, etc.) for every player.",
+                parameters=[
+                    ParameterSchema(
+                        name="season",
+                        type="string",
+                        required=True,
+                        description="Season in YYYY-YY format",
+                        example="2023-24",
+                    ),
+                    ParameterSchema(
+                        name="season_type",
+                        type="string",
+                        required=False,
+                        description="Regular Season or Playoffs",
+                        enum=["Regular Season", "Playoffs"],
+                        default="Regular Season",
+                    ),
+                    ParameterSchema(
+                        name="per_mode",
+                        type="string",
+                        required=False,
+                        description="Stat aggregation mode",
+                        enum=["PerGame", "Totals", "Per36", "Per48"],
+                        default="PerGame",
+                    ),
+                ],
+                primary_keys=["PLAYER_ID"],
+                output_columns=[
+                    "PLAYER_ID",
+                    "PLAYER_NAME",
+                    "TEAM_ID",
+                    "TEAM_ABBREVIATION",
+                    "GP",
+                    "MIN",
+                    "FGM",
+                    "FGA",
+                    "FG_PCT",
+                    "FG3M",
+                    "FG3A",
+                    "FG3_PCT",
+                    "FTM",
+                    "FTA",
+                    "FT_PCT",
+                    "OREB",
+                    "DREB",
+                    "REB",
+                    "AST",
+                    "TOV",
+                    "STL",
+                    "BLK",
+                    "PTS",
+                    "PLUS_MINUS",
+                ],
+                sample_params={
+                    "season": "2023-24",
+                    "season_type": "Regular Season",
+                    "per_mode": "PerGame",
+                },
+                supports_date_range=False,
+                supports_season_filter=True,
+                typical_row_count=500,  # ~476 players per season
+                chunk_strategy="none",
+            )
+        )
+
         self._add_endpoint(
             EndpointMetadata(
                 name="shot_chart",
                 display_name="Shot Chart Data",
                 category=EndpointCategory.ADVANCED_ANALYTICS,
-                description="Shot location data with optional hexagonal binning",
+                description="Shot location data with optional hexagonal binning. Use entity_type='league' for all players league-wide (fast bulk fetch).",
                 parameters=[
                     ParameterSchema(
                         name="entity_name",
                         type="string",
-                        required=True,
-                        description="Player or team name",
+                        required=False,  # Not required when entity_type='league'
+                        description="Player or team name (not required when entity_type='league')",
                         example="Stephen Curry",
                     ),
                     ParameterSchema(
                         name="entity_type",
                         type="string",
                         required=False,
-                        description="Entity type",
-                        enum=["player", "team"],
+                        description="Entity type: 'player' for single player, 'team' for all players on a team, 'league' for all players league-wide (219K+ shots in ~2s)",
+                        enum=["player", "team", "league"],
                         default="player",
                     ),
                     ParameterSchema(

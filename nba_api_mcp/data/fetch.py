@@ -415,16 +415,21 @@ async def _fetch_league_leaders(
 
 @register_endpoint(
     "shot_chart",
-    required_params=["entity_name"],
-    optional_params=["entity_type", "season", "granularity", "date_from", "date_to"],
-    description="Get shot location data with optional hexagonal binning",
-    tags={"shot", "chart", "spatial"},
+    required_params=[],  # entity_name not required for league mode
+    optional_params=["entity_name", "entity_type", "season", "granularity", "date_from", "date_to"],
+    description="Get shot location data. Use entity_type='league' for all players league-wide (fast bulk fetch: ~220K shots in ~2s)",
+    tags={"shot", "chart", "spatial", "bulk"},
 )
 async def _fetch_shot_chart(
     params: Dict[str, Any], provenance: ProvenanceInfo
 ) -> pd.DataFrame:
     """
     Fetch shot chart data.
+
+    Supports three modes:
+    - entity_type='player': Single player shot data (~1.2K shots in ~0.6s)
+    - entity_type='team': All players on a team (~7K shots in ~0.4s)
+    - entity_type='league': ALL players league-wide (~220K shots in ~2s)
 
     Note: The shot_chart tool (get_shot_chart) returns a complex nested structure.
     This implementation returns raw shot data for simplicity.
@@ -436,20 +441,28 @@ async def _fetch_shot_chart(
     date_from = params.get("date_from")
     date_to = params.get("date_to")
 
-    if not entity_name:
-        raise ValueError("entity_name is required")
+    # Validate: entity_name required for player/team, not for league
+    if entity_type in ("player", "team") and not entity_name:
+        raise ValueError(f"entity_name is required for entity_type='{entity_type}'")
 
     try:
-        # Resolve entity
-        entity = resolve_entity(entity_name, entity_type=entity_type)
-        provenance.nba_api_calls += 1
-
         # Import here to avoid circular dependency
         from nba_api_mcp.api.shot_charts import fetch_shot_chart_data
 
+        # Resolve entity (skip for league mode)
+        if entity_type == "league":
+            # League-wide: fetch all players, all teams
+            entity_id = None
+            logger.info("[shot_chart] League-wide fetch mode (bulk)")
+        else:
+            # Resolve player or team entity
+            entity = resolve_entity(entity_name, entity_type=entity_type)
+            entity_id = entity.entity_id
+            provenance.nba_api_calls += 1
+
         # Fetch raw shot data
         shot_df = await fetch_shot_chart_data(
-            entity_id=entity.entity_id,
+            entity_id=entity_id,
             entity_type=entity_type,
             season=season or "2024-25",
             date_from=date_from,
@@ -458,7 +471,13 @@ async def _fetch_shot_chart(
         provenance.nba_api_calls += 1
 
         if shot_df.empty:
-            logger.warning(f"No shot chart data found for {entity_name}")
+            logger.warning(f"No shot chart data found for {entity_name or 'league-wide'}")
+
+        # Log league-wide stats
+        if entity_type == "league" and not shot_df.empty:
+            unique_players = shot_df["PLAYER_ID"].nunique() if "PLAYER_ID" in shot_df.columns else 0
+            unique_teams = shot_df["TEAM_ID"].nunique() if "TEAM_ID" in shot_df.columns else 0
+            logger.info(f"[shot_chart] League-wide: {len(shot_df)} shots, {unique_players} players, {unique_teams} teams")
 
         # Return based on granularity
         if granularity == "raw":
@@ -481,6 +500,10 @@ async def _fetch_shot_chart(
                     "SHOT_MADE_FLAG"
                 ].sum(),
             }
+            # Add league-specific summary
+            if entity_type == "league":
+                summary["UNIQUE_PLAYERS"] = shot_df["PLAYER_ID"].nunique() if "PLAYER_ID" in shot_df.columns else 0
+                summary["UNIQUE_TEAMS"] = shot_df["TEAM_ID"].nunique() if "TEAM_ID" in shot_df.columns else 0
             return pd.DataFrame([summary])
         else:
             # For hexbin and both, return raw data
@@ -1038,6 +1061,77 @@ async def _fetch_league_team_games(
 
     except Exception as e:
         raise NBAApiError(f"Failed to fetch league team games: {e}")
+
+
+@register_endpoint(
+    "league_dash_player_stats",
+    required_params=["season"],
+    optional_params=["season_type", "per_mode"],
+    description="Get season statistics for ALL players in a season (league-wide dashboard)",
+    tags={"league", "player", "season", "stats", "all", "dashboard"},
+)
+async def _fetch_league_dash_player_stats(
+    params: Dict[str, Any], provenance: ProvenanceInfo
+) -> pd.DataFrame:
+    """
+    Fetch league-wide player season statistics.
+
+    Session 254E: This endpoint provides comprehensive season stats for ALL players,
+    which is different from league_leaders (which is a leaderboard) or player_career_stats
+    (which requires a single player_name).
+
+    Returns one row per player with full season statistics:
+    - GP, W, L, MIN
+    - FGM, FGA, FG_PCT, FG3M, FG3A, FG3_PCT, FTM, FTA, FT_PCT
+    - OREB, DREB, REB, AST, TOV, STL, BLK, PTS
+    - PLUS_MINUS, NBA_FANTASY_PTS, DD2, TD3
+
+    Args:
+        params: Must contain 'season', optional 'season_type' and 'per_mode'
+        provenance: Provenance tracking
+
+    Returns:
+        DataFrame with all players' season stats (e.g., 476 players for 2015-16)
+    """
+    season = params.get("season")
+    season_type = params.get("season_type", "Regular Season")
+    per_mode = params.get("per_mode", "PerGame")  # PerGame, Totals, Per36, etc.
+
+    if not season:
+        raise ValueError("season is required for league_dash_player_stats")
+
+    try:
+        from nba_api.stats.endpoints import LeagueDashPlayerStats
+
+        # Map season format if needed
+        if isinstance(season, list):
+            season = season[0] if season else None
+
+        # Build API parameters
+        result = await asyncio.to_thread(
+            LeagueDashPlayerStats,
+            season=season,
+            per_mode_detailed=per_mode,
+            season_type_all_star=season_type,
+        )
+
+        df = result.get_data_frames()[0]
+        provenance.nba_api_calls += 1
+
+        if df.empty:
+            logger.warning(
+                f"No player stats found for season {season} "
+                f"(season_type={season_type}, per_mode={per_mode})"
+            )
+
+        logger.info(
+            f"[league_dash_player_stats] Retrieved {len(df)} players for {season}"
+        )
+
+        return df
+
+    except Exception as e:
+        raise NBAApiError(f"Failed to fetch league dash player stats: {e}")
 
 
 def validate_parameters(endpoint: str, params: Dict[str, Any]) -> None:

@@ -177,15 +177,15 @@ async def expand_scope_and_fetch(
 
     if query.use_cache and not query.force_refresh:
         cache_manager = get_cache_manager()
-        cached_result = await cache_manager.get(composite_cache_key)
+        cached_table = await cache_manager.get(composite_cache_key)
 
-        if cached_result:
+        if cached_table is not None:
             logger.info(f"Composite cache hit: {composite_cache_key}")
 
             execution_time = (time.time() - start_time) * 1000
 
             return QueryResult(
-                data=cached_result["data"],
+                data=cached_table,
                 query=query,
                 execution_time_ms=execution_time,
                 from_cache=True,
@@ -193,7 +193,7 @@ async def expand_scope_and_fetch(
                 expanded_queries=expanded_queries,
                 metadata={
                     "total_queries": total_queries,
-                    "rows": cached_result["data"].num_rows if hasattr(cached_result["data"], "num_rows") else 0,
+                    "rows": cached_table.num_rows if hasattr(cached_table, "num_rows") else 0,
                 },
             )
 
@@ -279,7 +279,7 @@ async def expand_scope_and_fetch(
         cache_manager = get_cache_manager()
         await cache_manager.set(
             composite_cache_key,
-            {"data": merged_table},
+            merged_table,
             ttl=3600,  # 1 hour for merged results
         )
         logger.info(f"Cached merged result: {composite_cache_key}")

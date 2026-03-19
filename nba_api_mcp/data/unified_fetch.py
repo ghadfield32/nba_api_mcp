@@ -488,7 +488,10 @@ def apply_filters(table: pa.Table, filters: Dict[str, List[Any]]) -> pa.Table:
                 conditions.append(f'"{column}" != {value}')
 
         elif operator in (">", ">=", "<", "<="):
-            conditions.append(f'"{column}" {operator} {value}')
+            if isinstance(value, str):
+                conditions.append(f"\"{column}\" {operator} '{value}'")
+            else:
+                conditions.append(f'"{column}" {operator} {value}')
 
         elif operator == "IN":
             if not isinstance(value, (list, tuple)):
@@ -503,7 +506,11 @@ def apply_filters(table: pa.Table, filters: Dict[str, List[Any]]) -> pa.Table:
         elif operator == "BETWEEN":
             if not isinstance(value, (list, tuple)) or len(value) != 2:
                 raise ValueError("BETWEEN operator requires [min, max]")
-            conditions.append(f'"{column}" BETWEEN {value[0]} AND {value[1]}')
+            # Quote string values for proper SQL generation (e.g., date strings)
+            if isinstance(value[0], str):
+                conditions.append(f"\"{column}\" BETWEEN '{value[0]}' AND '{value[1]}'")
+            else:
+                conditions.append(f'"{column}" BETWEEN {value[0]} AND {value[1]}')
 
         elif operator == "LIKE":
             if not isinstance(value, str):

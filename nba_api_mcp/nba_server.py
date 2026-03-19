@@ -6896,13 +6896,16 @@ def main():
 
     logger.info("Week 4 observability initialization complete")
 
+    # Keep the FastMCP instance aligned with the requested network bind address.
+    if transport != "stdio":
+        mcp_server.host = host
+        if port is not None:
+            mcp_server.port = port
+
     # if using network transport, check availability
     if transport != "stdio" and port is not None and not port_available(port, host):
         logger.warning("Port %s:%s not available → falling back to stdio", host, port)
         transport = "stdio"
-
-        mcp_server.host = host
-        mcp_server.port = port
     try:
         if transport == "stdio":
             logger.info("Starting FastMCP server on STDIO")

@@ -400,15 +400,15 @@ class GetShotChartParams(BaseModel):
     for visualizing shooting patterns and hot zones.
     """
 
-    entity_name: str = Field(
-        ...,
-        description="Player or team name (full or partial, e.g., 'Stephen Curry', 'Warriors', 'LAL')",
+    entity_name: Optional[str] = Field(
+        None,
+        description="Player or team name (not required when entity_type='league'). Full or partial names supported.",
         examples=["Stephen Curry", "LeBron James", "Warriors", "Lakers"],
         min_length=2,
     )
-    entity_type: Literal["player", "team"] = Field(
+    entity_type: Literal["player", "team", "league"] = Field(
         "player",
-        description="Entity type: 'player' for individual, 'team' for entire team",
+        description="Entity type: 'player' for individual, 'team' for entire team, 'league' for all players league-wide (fast bulk fetch)",
     )
     season: Optional[str] = Field(
         None,

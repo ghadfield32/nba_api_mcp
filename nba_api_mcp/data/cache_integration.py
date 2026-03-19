@@ -306,6 +306,39 @@ class CacheManager:
             self.stats["errors"] += 1
             return None, False
 
+    async def get(self, key: str) -> Optional[Any]:
+        """
+        Get data from cache by key (public wrapper for _get_from_cache).
+
+        Args:
+            key: Cache key
+
+        Returns:
+            Cached data or None if not found
+        """
+        return await self._get_from_cache(key)
+
+    async def set(self, key: str, data: Any, ttl: int = 3600) -> None:
+        """
+        Set data in cache by key (public wrapper for _set_in_cache).
+
+        Args:
+            key: Cache key
+            data: Data to cache (can be dict with 'data' key containing pa.Table)
+            ttl: Time to live in seconds (default: 1 hour)
+        """
+        # Extract pa.Table from dict if wrapped
+        if isinstance(data, dict) and "data" in data and isinstance(data["data"], pa.Table):
+            await self._set_in_cache(key, data["data"], ttl)
+        elif isinstance(data, pa.Table):
+            await self._set_in_cache(key, data, ttl)
+        else:
+            # For non-Table data, store in LRU directly
+            if hasattr(self, 'lru_cache'):
+                self.lru_cache.set(key, data, ttl)
+            else:
+                logger.warning(f"Cannot cache non-Table data without LRU cache: {type(data)}")
+
     async def _get_from_cache(self, key: str) -> Optional[pa.Table]:
         """Get data from cache backend."""
         if self.cache_backend == "redis":
