@@ -22,8 +22,8 @@ from nba_api_mcp.api.advanced_stats import get_current_season_from_nba_api
 class TestGetLiveScoresDateHandling:
     """Test get_live_scores uses NBA API for date instead of system clock."""
 
-    @patch('nba_mcp.nba_server.ScoreBoard')
-    @patch('nba_mcp.nba_server.NBAApiClient')
+    @patch('nba_api_mcp.nba_server.ScoreBoard')
+    @patch('nba_api_mcp.nba_server.NBAApiClient')
     async def test_get_live_scores_fetches_date_from_nba_api(self, mock_client_class, mock_scoreboard_class):
         """
         Test that get_live_scores fetches date from NBA API when no target_date provided.
@@ -51,8 +51,8 @@ class TestGetLiveScoresDateHandling:
         call_args = mock_client_instance.get_live_scoreboard.call_args
         assert call_args[1]['target_date'] == "2025-01-28"
 
-    @patch('nba_mcp.nba_server.ScoreBoard')
-    @patch('nba_mcp.nba_server.NBAApiClient')
+    @patch('nba_api_mcp.nba_server.ScoreBoard')
+    @patch('nba_api_mcp.nba_server.NBAApiClient')
     async def test_get_live_scores_uses_provided_date(self, mock_client_class, mock_scoreboard_class):
         """
         Test that get_live_scores uses provided target_date without calling NBA API.
@@ -75,7 +75,7 @@ class TestGetLiveScoresDateHandling:
         call_args = mock_client_instance.get_live_scoreboard.call_args
         assert call_args[1]['target_date'] == "2024-12-25"
 
-    @patch('nba_mcp.nba_server.ScoreBoard')
+    @patch('nba_api_mcp.nba_server.ScoreBoard')
     async def test_get_live_scores_raises_on_nba_api_failure(self, mock_scoreboard_class):
         """
         Test that get_live_scores raises exception when NBA API fails.
@@ -96,7 +96,7 @@ class TestGetLiveScoresDateHandling:
 class TestGetCurrentSeasonFromNBAAPI:
     """Test get_current_season_from_nba_api helper function."""
 
-    @patch('nba_mcp.api.advanced_stats.ScoreBoard')
+    @patch('nba_api_mcp.api.advanced_stats.ScoreBoard')
     def test_season_calculation_october_or_later(self, mock_scoreboard_class):
         """
         Test season calculation when date is October or later.
@@ -112,7 +112,7 @@ class TestGetCurrentSeasonFromNBAAPI:
         # October 2024 → 2024-25 season
         assert result == "2024-25"
 
-    @patch('nba_mcp.api.advanced_stats.ScoreBoard')
+    @patch('nba_api_mcp.api.advanced_stats.ScoreBoard')
     def test_season_calculation_before_october(self, mock_scoreboard_class):
         """
         Test season calculation when date is before October.
@@ -128,7 +128,7 @@ class TestGetCurrentSeasonFromNBAAPI:
         # January 2025 → 2024-25 season (season started in October 2024)
         assert result == "2024-25"
 
-    @patch('nba_mcp.api.advanced_stats.ScoreBoard')
+    @patch('nba_api_mcp.api.advanced_stats.ScoreBoard')
     def test_season_calculation_december(self, mock_scoreboard_class):
         """
         Test season calculation for December (edge case).
@@ -144,7 +144,7 @@ class TestGetCurrentSeasonFromNBAAPI:
         # December 2024 → 2024-25 season
         assert result == "2024-25"
 
-    @patch('nba_mcp.api.advanced_stats.ScoreBoard')
+    @patch('nba_api_mcp.api.advanced_stats.ScoreBoard')
     def test_season_calculation_september(self, mock_scoreboard_class):
         """
         Test season calculation for September (edge case before season starts).
@@ -160,7 +160,7 @@ class TestGetCurrentSeasonFromNBAAPI:
         # September 2024 → 2023-24 season (previous season)
         assert result == "2023-24"
 
-    @patch('nba_mcp.api.advanced_stats.ScoreBoard')
+    @patch('nba_api_mcp.api.advanced_stats.ScoreBoard')
     def test_raises_on_nba_api_failure(self, mock_scoreboard_class):
         """
         Test that function raises exception when NBA API fails.
@@ -173,7 +173,7 @@ class TestGetCurrentSeasonFromNBAAPI:
 
         assert "NBA API connection failed" in str(exc_info.value)
 
-    @patch('nba_mcp.api.advanced_stats.ScoreBoard')
+    @patch('nba_api_mcp.api.advanced_stats.ScoreBoard')
     def test_raises_on_invalid_date_format(self, mock_scoreboard_class):
         """
         Test that function raises exception on invalid date format from NBA API.
@@ -190,9 +190,9 @@ class TestGetCurrentSeasonFromNBAAPI:
 class TestAdvancedStatsSeasonDetection:
     """Test that advanced stats functions use NBA API for season detection."""
 
-    @patch('nba_mcp.api.advanced_stats.get_current_season_from_nba_api')
-    @patch('nba_mcp.api.advanced_stats.asyncio.to_thread')
-    @patch('nba_mcp.api.advanced_stats.resolve_entity')
+    @patch('nba_api_mcp.api.advanced_stats.get_current_season_from_nba_api')
+    @patch('nba_api_mcp.api.advanced_stats.asyncio.to_thread')
+    @patch('nba_api_mcp.api.advanced_stats.resolve_entity')
     async def test_get_team_standings_uses_nba_api_season(
         self, mock_resolve, mock_to_thread, mock_get_season
     ):
@@ -216,9 +216,9 @@ class TestAdvancedStatsSeasonDetection:
         # Verify that get_current_season_from_nba_api was called
         mock_get_season.assert_called_once()
 
-    @patch('nba_mcp.api.advanced_stats.get_current_season_from_nba_api')
-    @patch('nba_mcp.api.advanced_stats.asyncio.to_thread')
-    @patch('nba_mcp.api.advanced_stats.resolve_entity')
+    @patch('nba_api_mcp.api.advanced_stats.get_current_season_from_nba_api')
+    @patch('nba_api_mcp.api.advanced_stats.asyncio.to_thread')
+    @patch('nba_api_mcp.api.advanced_stats.resolve_entity')
     async def test_get_team_advanced_stats_uses_nba_api_season(
         self, mock_resolve, mock_to_thread, mock_get_season
     ):
@@ -248,9 +248,9 @@ class TestAdvancedStatsSeasonDetection:
         # Verify that get_current_season_from_nba_api was called
         mock_get_season.assert_called_once()
 
-    @patch('nba_mcp.api.advanced_stats.get_current_season_from_nba_api')
-    @patch('nba_mcp.api.advanced_stats.asyncio.to_thread')
-    @patch('nba_mcp.api.advanced_stats.resolve_entity')
+    @patch('nba_api_mcp.api.advanced_stats.get_current_season_from_nba_api')
+    @patch('nba_api_mcp.api.advanced_stats.asyncio.to_thread')
+    @patch('nba_api_mcp.api.advanced_stats.resolve_entity')
     async def test_get_player_advanced_stats_uses_nba_api_season(
         self, mock_resolve, mock_to_thread, mock_get_season
     ):
@@ -284,7 +284,7 @@ class TestAdvancedStatsSeasonDetection:
 class TestDateHandlingConsistency:
     """Integration tests to verify consistent date handling across the codebase."""
 
-    @patch('nba_mcp.api.advanced_stats.ScoreBoard')
+    @patch('nba_api_mcp.api.advanced_stats.ScoreBoard')
     def test_consistent_season_calculation_logic(self, mock_scoreboard_class):
         """
         Test that season calculation logic is consistent regardless of environment.

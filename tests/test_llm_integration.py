@@ -184,7 +184,7 @@ async def test_ollama_client_invoke_when_disabled():
 
 
 @pytest.mark.asyncio
-@patch("nba_mcp.nlq.llm_fallback.ChatOllama")
+@patch("nba_api_mcp.nlq.llm_fallback.ChatOllama")
 async def test_ollama_client_invoke_success(mock_chat_ollama):
     """Test successful Ollama invocation."""
     # Mock successful response
@@ -210,7 +210,7 @@ async def test_ollama_client_invoke_success(mock_chat_ollama):
 
 
 @pytest.mark.asyncio
-@patch("nba_mcp.nlq.llm_fallback.ChatOllama")
+@patch("nba_api_mcp.nlq.llm_fallback.ChatOllama")
 async def test_ollama_client_invoke_failure(mock_chat_ollama):
     """Test Ollama invocation failure handling."""
     # Mock invocation failure
@@ -318,7 +318,7 @@ def test_json_validation_uncorrectable():
 @pytest.mark.asyncio
 async def test_refine_parse_disabled(mock_env_disabled, sample_parsed_query):
     """Test parse refinement returns original when disabled."""
-    with patch("nba_mcp.nlq.llm_fallback._config", None):  # Reset config
+    with patch("nba_api_mcp.nlq.llm_fallback._config", None):  # Reset config
         result = await refine_parse(sample_parsed_query)
 
         assert result == sample_parsed_query
@@ -326,7 +326,7 @@ async def test_refine_parse_disabled(mock_env_disabled, sample_parsed_query):
 
 
 @pytest.mark.asyncio
-@patch("nba_mcp.nlq.llm_fallback.ChatOllama")
+@patch("nba_api_mcp.nlq.llm_fallback.ChatOllama")
 async def test_refine_parse_success(mock_chat_ollama, sample_parsed_query):
     """Test successful parse refinement."""
     # Mock successful LLM response
@@ -338,8 +338,8 @@ async def test_refine_parse_success(mock_chat_ollama, sample_parsed_query):
     mock_chat_ollama.return_value = mock_instance
 
     # Reset config to force re-initialization
-    with patch("nba_mcp.nlq.llm_fallback._config", None):
-        with patch("nba_mcp.nlq.llm_fallback._ollama_client", None):
+    with patch("nba_api_mcp.nlq.llm_fallback._config", None):
+        with patch("nba_api_mcp.nlq.llm_fallback._ollama_client", None):
             with patch.dict(os.environ, {"NBA_MCP_ENABLE_LLM_FALLBACK": "true"}):
                 result = await refine_parse(sample_parsed_query)
 
@@ -353,15 +353,15 @@ async def test_refine_parse_success(mock_chat_ollama, sample_parsed_query):
 
 
 @pytest.mark.asyncio
-@patch("nba_mcp.nlq.llm_fallback.ChatOllama")
+@patch("nba_api_mcp.nlq.llm_fallback.ChatOllama")
 async def test_refine_parse_llm_returns_none(mock_chat_ollama, sample_parsed_query):
     """Test parse refinement handles LLM returning None."""
     mock_instance = MagicMock()
     mock_instance.invoke = AsyncMock(return_value=None)
     mock_chat_ollama.return_value = mock_instance
 
-    with patch("nba_mcp.nlq.llm_fallback._config", None):
-        with patch("nba_mcp.nlq.llm_fallback._ollama_client", None):
+    with patch("nba_api_mcp.nlq.llm_fallback._config", None):
+        with patch("nba_api_mcp.nlq.llm_fallback._ollama_client", None):
             with patch.dict(os.environ, {"NBA_MCP_ENABLE_LLM_FALLBACK": "true"}):
                 result = await refine_parse(sample_parsed_query)
 
@@ -369,7 +369,7 @@ async def test_refine_parse_llm_returns_none(mock_chat_ollama, sample_parsed_que
 
 
 @pytest.mark.asyncio
-@patch("nba_mcp.nlq.llm_fallback.ChatOllama")
+@patch("nba_api_mcp.nlq.llm_fallback.ChatOllama")
 async def test_refine_parse_invalid_json(mock_chat_ollama, sample_parsed_query):
     """Test parse refinement handles invalid JSON response."""
     mock_response = MagicMock()
@@ -379,8 +379,8 @@ async def test_refine_parse_invalid_json(mock_chat_ollama, sample_parsed_query):
     mock_instance.invoke = MagicMock(return_value=mock_response)
     mock_chat_ollama.return_value = mock_instance
 
-    with patch("nba_mcp.nlq.llm_fallback._config", None):
-        with patch("nba_mcp.nlq.llm_fallback._ollama_client", None):
+    with patch("nba_api_mcp.nlq.llm_fallback._config", None):
+        with patch("nba_api_mcp.nlq.llm_fallback._ollama_client", None):
             with patch.dict(os.environ, {"NBA_MCP_ENABLE_LLM_FALLBACK": "true"}):
                 result = await refine_parse(sample_parsed_query)
 
@@ -398,14 +398,14 @@ async def test_refine_parse_invalid_json(mock_chat_ollama, sample_parsed_query):
 @pytest.mark.asyncio
 async def test_generate_plan_disabled(mock_env_disabled, sample_unknown_intent_query):
     """Test plan generation returns empty when disabled."""
-    with patch("nba_mcp.nlq.llm_fallback._config", None):
+    with patch("nba_api_mcp.nlq.llm_fallback._config", None):
         result = await generate_plan(sample_unknown_intent_query)
 
         assert result == []
 
 
 @pytest.mark.asyncio
-@patch("nba_mcp.nlq.llm_fallback.ChatOllama")
+@patch("nba_api_mcp.nlq.llm_fallback.ChatOllama")
 async def test_generate_plan_success(mock_chat_ollama, sample_unknown_intent_query):
     """Test successful plan generation."""
     # Mock successful LLM response
@@ -420,8 +420,8 @@ async def test_generate_plan_success(mock_chat_ollama, sample_unknown_intent_que
     mock_instance.invoke = MagicMock(return_value=mock_response)
     mock_chat_ollama.return_value = mock_instance
 
-    with patch("nba_mcp.nlq.llm_fallback._config", None):
-        with patch("nba_mcp.nlq.llm_fallback._ollama_client", None):
+    with patch("nba_api_mcp.nlq.llm_fallback._config", None):
+        with patch("nba_api_mcp.nlq.llm_fallback._ollama_client", None):
             with patch.dict(os.environ, {"NBA_MCP_ENABLE_LLM_FALLBACK": "true"}):
                 result = await generate_plan(sample_unknown_intent_query)
 
@@ -437,7 +437,7 @@ async def test_generate_plan_success(mock_chat_ollama, sample_unknown_intent_que
 
 
 @pytest.mark.asyncio
-@patch("nba_mcp.nlq.llm_fallback.ChatOllama")
+@patch("nba_api_mcp.nlq.llm_fallback.ChatOllama")
 async def test_generate_plan_multiple_tools(mock_chat_ollama, sample_unknown_intent_query):
     """Test plan generation with multiple tools."""
     mock_response = MagicMock()
@@ -452,8 +452,8 @@ async def test_generate_plan_multiple_tools(mock_chat_ollama, sample_unknown_int
     mock_instance.invoke = MagicMock(return_value=mock_response)
     mock_chat_ollama.return_value = mock_instance
 
-    with patch("nba_mcp.nlq.llm_fallback._config", None):
-        with patch("nba_mcp.nlq.llm_fallback._ollama_client", None):
+    with patch("nba_api_mcp.nlq.llm_fallback._config", None):
+        with patch("nba_api_mcp.nlq.llm_fallback._ollama_client", None):
             with patch.dict(os.environ, {"NBA_MCP_ENABLE_LLM_FALLBACK": "true"}):
                 result = await generate_plan(sample_unknown_intent_query)
 
@@ -463,15 +463,15 @@ async def test_generate_plan_multiple_tools(mock_chat_ollama, sample_unknown_int
 
 
 @pytest.mark.asyncio
-@patch("nba_mcp.nlq.llm_fallback.ChatOllama")
+@patch("nba_api_mcp.nlq.llm_fallback.ChatOllama")
 async def test_generate_plan_llm_returns_none(mock_chat_ollama, sample_unknown_intent_query):
     """Test plan generation handles LLM returning None."""
     mock_instance = MagicMock()
     mock_instance.invoke = AsyncMock(return_value=None)
     mock_chat_ollama.return_value = mock_instance
 
-    with patch("nba_mcp.nlq.llm_fallback._config", None):
-        with patch("nba_mcp.nlq.llm_fallback._ollama_client", None):
+    with patch("nba_api_mcp.nlq.llm_fallback._config", None):
+        with patch("nba_api_mcp.nlq.llm_fallback._ollama_client", None):
             with patch.dict(os.environ, {"NBA_MCP_ENABLE_LLM_FALLBACK": "true"}):
                 result = await generate_plan(sample_unknown_intent_query)
 
@@ -479,7 +479,7 @@ async def test_generate_plan_llm_returns_none(mock_chat_ollama, sample_unknown_i
 
 
 @pytest.mark.asyncio
-@patch("nba_mcp.nlq.llm_fallback.ChatOllama")
+@patch("nba_api_mcp.nlq.llm_fallback.ChatOllama")
 async def test_generate_plan_invalid_json(mock_chat_ollama, sample_unknown_intent_query):
     """Test plan generation handles invalid JSON."""
     mock_response = MagicMock()
@@ -489,8 +489,8 @@ async def test_generate_plan_invalid_json(mock_chat_ollama, sample_unknown_inten
     mock_instance.invoke = MagicMock(return_value=mock_response)
     mock_chat_ollama.return_value = mock_instance
 
-    with patch("nba_mcp.nlq.llm_fallback._config", None):
-        with patch("nba_mcp.nlq.llm_fallback._ollama_client", None):
+    with patch("nba_api_mcp.nlq.llm_fallback._config", None):
+        with patch("nba_api_mcp.nlq.llm_fallback._ollama_client", None):
             with patch.dict(os.environ, {"NBA_MCP_ENABLE_LLM_FALLBACK": "true"}):
                 result = await generate_plan(sample_unknown_intent_query)
 
@@ -582,7 +582,7 @@ def test_plan_generation_prompt_format():
 # ============================================================================
 
 @pytest.mark.asyncio
-@patch("nba_mcp.nlq.llm_fallback.ChatOllama")
+@patch("nba_api_mcp.nlq.llm_fallback.ChatOllama")
 async def test_full_pipeline_with_llm_fallback(mock_chat_ollama):
     """Test full NLQ pipeline with LLM fallback."""
     # Mock successful parse refinement
@@ -609,8 +609,8 @@ async def test_full_pipeline_with_llm_fallback(mock_chat_ollama):
         confidence=0.3
     )
 
-    with patch("nba_mcp.nlq.llm_fallback._config", None):
-        with patch("nba_mcp.nlq.llm_fallback._ollama_client", None):
+    with patch("nba_api_mcp.nlq.llm_fallback._config", None):
+        with patch("nba_api_mcp.nlq.llm_fallback._ollama_client", None):
             with patch.dict(os.environ, {"NBA_MCP_ENABLE_LLM_FALLBACK": "true"}):
                 # Refine parse
                 refined = await refine_parse(query)
@@ -634,7 +634,7 @@ async def test_graceful_degradation_when_ollama_unavailable():
     )
 
     # Disable LLM fallback
-    with patch("nba_mcp.nlq.llm_fallback._config", None):
+    with patch("nba_api_mcp.nlq.llm_fallback._config", None):
         with patch.dict(os.environ, {"NBA_MCP_ENABLE_LLM_FALLBACK": "false"}):
             result = await refine_parse(query)
 
