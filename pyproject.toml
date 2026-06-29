@@ -39,6 +39,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Shared core library from workspace (install with: pip install -e ../../basketball_mcp_core)
+core = [
+  "basketball-mcp-core",
+]
 redis = [
   "redis>=5.0.0",
 ]
